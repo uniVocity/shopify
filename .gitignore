@@ -1,0 +1,45 @@
+**/target/*
+**/test-output/*
+**/target
+.idea
+
+**/*.iml
+**/*.ipr
+**/*.iws
+
+**/.DS_STORE
+**/.directory
+
+**/.attach*
+**/*.log
+
+
+/.ideaDataSources/
+/dataSources/
+
+
+### Eclipse template
+
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+# Eclipse Core
+.classpath
+.project
+
+# External tool builders
+.externalToolBuilders/
+
+# Locally stored "Eclipse launch configurations"
+*.launch
+
+**/tmp/*
