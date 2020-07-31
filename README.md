@@ -12,23 +12,25 @@ In the interest of decentralization, more advanced users will be able to build a
 this project to their own servers and run the Cardano integration app in their own stores,
 independently of the official app we are going to release.
 
-Source code and documentation will start to flow on as soon as the `SHOP` pool starts
+Source code and documentation will start to flow on as soon as the **`SHOP`** pool starts
 generating rewards on the cardano mainnet.  
 
 There is a lot of development to be done. Please come back and check this 
 repository weekly to see what's happening.
 
-We will investigate how to enable integration with other online stores backed by other platforms
+In time, we will investigate how to enable integration with other online stores backed by other platforms
 such as Magento, BigCommerce, etc once the [Shopify](https://www.shopify.com/?ref=univocity) app is ready for production.
 
 > "We are Cardano, and if you'll permit us, we'd like to change the world."
 
+This is just one of the many steps towards changing the world.
+
 ## Supporting our project
 
-This is an open-source, not for profit initiative, and we are looking for support
+As an open-source, not for profit initiative, we are looking for support
 from the community through:
 
- * stake pool delegation: simply delegate your ADA to our stake pool **`SHOP`**. Fees on
+ * **stake pool delegation**: simply delegate your ADA to our stake pool **`SHOP`**. Fees on
   rewards produced by the **`SHOP`** pool will be used to help financing the long term
   development and maintenance of this project, and others to come.
   
