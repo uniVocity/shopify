@@ -1,4 +1,4 @@
-# Welcome to our Cardano e-commerce integration project
+# Welcome to the Cardano e-commerce integration project
 
 This project aims to build Cardano integrations with [Shopify](https://www.shopify.com/?ref=univocity) 
 and enable online shops and customers to exchange ADA for goods with 0 fees and commissions.
@@ -13,7 +13,7 @@ this project to their own servers and run the Cardano integration app in their o
 independently of the official app we are going to release.
 
 Source code and documentation will start to flow on as soon as the **`SHOP`** pool starts
-generating rewards on the cardano mainnet.  
+generating rewards on the Cardano mainnet.  
 
 There is a lot of development to be done. Please come back and check this 
 repository weekly to see what's happening.
@@ -22,6 +22,8 @@ In time, we will investigate how to enable integration with other online stores 
 such as Magento, BigCommerce, etc once the [Shopify](https://www.shopify.com/?ref=univocity) app is ready for production.
 
 > "We are Cardano, and if you'll permit us, we'd like to change the world."
+>
+> -- <cite>Charles Hoskinson</cite>
 
 This is just one of the many steps towards changing the world.
 
