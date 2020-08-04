@@ -660,3 +660,7 @@ cardano-cli shelley stake-pool id --verification-key-file ~/pool-keys/node.vkey 
 cat /tmp/stakepoolid.txt
 ./getDelegators.sh $(cat /tmp/stakepoolid.txt)
 ```
+
+### Send money out of your pledge address:
+
+Execute all commands listed in the [Send simple payment](./send_simple_payment.md), in order. Ugly, but works.
