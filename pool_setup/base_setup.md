@@ -364,7 +364,6 @@ nano ~/run.sh
 export LD_LIBRARY_PATH="/usr/local/lib:$LD_LIBRARY_PATH"
 
 /home/<USER>/.local/bin/cardano-node run \
-
    --topology ~/config/mainnet-topology.json \
    --database-path ~/cardano-node/db \
    --socket-path ~/cardano-node/db/node.socket \
