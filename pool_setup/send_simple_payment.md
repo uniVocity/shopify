@@ -9,12 +9,12 @@ nano target-wallet.addr
 # Get protocol params:
 cardano-cli shelley query protocol-parameters \
    --mainnet \
-   --out-file /tmp/params.json \
+   --out-file /tmp/params.json 
 
 #Find your balance and UTXOs:
 cardano-cli shelley query utxo \
    --address $(cat payment.addr) \
-   --mainnet \
+   --mainnet 
  > /tmp/fullUtxo.out
 
 tail -n +3 /tmp/fullUtxo.out | sort -k3 -nr > /tmp/balance.out
@@ -88,7 +88,7 @@ cardano-cli shelley transaction sign \
 #Send the signed transaction.
 cardano-cli shelley transaction submit \
    --tx-file /tmp/tx.signed \
-   --mainnet \
+   --mainnet 
 
 
 #Check balance of wallet that sent the amount
