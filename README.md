@@ -1,44 +1,56 @@
-# Welcome to the Cardano e-commerce integration project
+# Welcome to the Cardano e-commerce integration project, sponsored by the *_SHOP_* stake pool. 
 
-This project aims to build Cardano integrations with [Shopify](https://www.shopify.com/?ref=univocity) 
-and enable online shops and customers to exchange ADA for goods with 0 fees and commissions.
+This project aims to build Cardano integrations with e-commerce and enable 
+online shops and customers to exchange ADA for goods with ZERO fees and 
+commissions.
 
-We are going to release and maintain an official [Shopify](https://www.shopify.com/?ref=univocity) app, which will be immediately 
-accessible to more than 500,000 online businesses around the world. Our hope
-is to slowly introduce Cardano into this marketplace - which currently generates
-around 870K dollars per minute in sales.
+Initially, we are going to release and maintain an official
+[Shopify](https://www.shopify.com/?ref=univocity)  app, which will be 
+immediately accessible to more than 500,000 online businesses 
+around the world who generate 800 million dollars per minute in sales.
 
-In the interest of decentralization, more advanced users will be able to build and deploy 
-this project to their own servers and run the Cardano integration app in their own stores,
-independently of the official app we are going to release.
+Once smart contracts become available, we'll introduce support for subscriptions 
+and recurring payments in ADA and native tokens that run on the Cardano 
+blockchain.
 
-Source code and documentation will start to flow on as soon as the **`SHOP`** pool starts
-generating rewards on the Cardano mainnet.  
+The code will be fully open-sourced and more advanced users will be able to 
+customize, build and deploy it to their own servers.
 
-There is a lot of development to be done. Please come back and check this 
-repository weekly to see what's happening.
+After [Shopify](https://www.shopify.com/?ref=univocity), we will move on to
+build integrations with other large e-commerce platforms such as Woocommerce 
+for WordPress, Magento, etc.
 
-In time, we will investigate how to enable integration with other online stores backed by other platforms
-such as Magento, BigCommerce, etc once the [Shopify](https://www.shopify.com/?ref=univocity) app is ready for production.
+Source code and documentation will be available here on this GitHub repository,
+and the work will begin once the **SHOP** pool starts generating rewards on the 
+Cardano mainnet.
 
-> "We are Cardano, and if you'll permit us, we'd like to change the world."
->
-> -- <cite>Charles Hoskinson</cite>
+## Delegate to the **SHOP** pool to help expand the cardano ecosystem!
 
-This is just one of the many steps towards changing the world.
+We want to offer everything for free to help with the adoption of Cardano as 
+viable payment gateway for everyone.
+ 
+Pool fees will help to support the development and maintenance of our e-commerce
+integrations, which depend on servers to be online, certificates to be paid, and
+other constant running costs.
 
-## Supporting our project
+### The **SHOP** pool has:
+
+ - **580K ADA pledged**. Enough to cover the minimum pool fee of 345 ADA, so you get
+full rewards. Keep in mind that pools with pledge lower than 544K ADA will 
+operate at a deficit and that shortfall will be passed on to delegators.
+ 
+ - **5% fees**. Comparing to a pool that charges 1% fees, this means you earn only 
+0.2% less rewards in a year, but you'll help increase the value of every ADA you
+own through greater adoption.  
+
+## Other ways of supporting our project
 
 As an open-source, not for profit initiative, we are looking for support
-from the community through:
-
- * **stake pool delegation**: simply delegate your ADA to our stake pool **`SHOP`**. Fees on
-  rewards produced by the **`SHOP`** pool will be used to help financing the long term
-  development and maintenance of this project, and others to come.
+from the community not only through stake pool delegation. You can also:
   
- * **<a class="github-button" href="https://github.com/sponsors/jbax" data-icon="octicon-heart" aria-label="Sponsor @jbax on GitHub">sponsoring</a>** me here on github.
+ * **<a class="github-button" href="https://github.com/sponsors/jbax" data-icon="octicon-heart" aria-label="Sponsor @jbax on GitHub">Sponsor</a>** me here on github.
 
- * **direct donations**, via:
+ * **Donate**, via:
   
    * **Paypal** - just click [![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_SM.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=JKH3JNHLL4Y42&source=url) 
    
@@ -46,7 +58,7 @@ from the community through:
    
    * **Bitcoin**: on `3BcmUPTPfLDuYWWSBxGKkChkq5WMzC94J6`
    
-  * or even affiliate links:
+  * Or help through these affiliate links:
    
      * **[Coinmama](https://go.coinmama.com/visit/?bta=56730&brand=coinmama)** for buying
         and selling ADA among other crypto currencies. This is not an exchange and you get your tokens pretty fast.
@@ -54,6 +66,5 @@ from the community through:
      * **[Binance](https://www.binance.com/en/register?ref=36767892)** for trading - 
         and if you can code you can even build automated trading robots for binance
         using my other project [univocity-trader](https://github.com/uniVocity/univocity-trader)
-
  
 Every little bit helps. Thank you for your support!
