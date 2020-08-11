@@ -35,9 +35,7 @@ other constant running costs.
 
 ### The **SHOP** pool has:
 
- - **580K ADA pledged**. Enough to cover the minimum pool fee of 345 ADA, so you get
-full rewards. Keep in mind that pools with pledge lower than 544K ADA will 
-operate at a deficit and that shortfall will be passed on to delegators.
+ - **580K ADA pledged**. We are committed not only to expand the adoption of Cardano in the e-commerce space, but also committed to ensure it's decentralized. We are here to stay and not going anywhere.
  
  - **5% fees**. Comparing to a pool that charges 1% fees, this means you earn only 
 0.2% less rewards in a year, but you'll help increase the value of every ADA you
