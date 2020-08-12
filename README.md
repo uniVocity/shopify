@@ -37,9 +37,8 @@ other constant running costs.
 
  - **580K ADA pledged**. We are committed not only to expand the adoption of Cardano in the e-commerce space, but also committed to ensure it's decentralized. We are here to stay and not going anywhere.
  
- - **5% fees**. Comparing to a pool that charges 1% fees, this means you earn only 
-0.2% less rewards in a year, but you'll help increase the value of every ADA you
-own through greater adoption.  
+ - **1.74% fees**. On top of great rewards you'll also help increase the value 
+of every ADA you own through greater adoption.  
 
 ## Other ways of supporting our project
 
