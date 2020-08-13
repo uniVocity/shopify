@@ -1,14 +1,13 @@
 package com.univocity.shopify;
 
 
-
 import com.univocity.shopify.controllers.*;
 import com.univocity.shopify.utils.*;
+import com.univocity.shopify.utils.database.*;
 import com.zaxxer.hikari.*;
-
+import org.apache.commons.io.*;
 import org.slf4j.*;
 import org.springframework.context.annotation.*;
-import org.springframework.jdbc.core.*;
 import org.springframework.jdbc.datasource.*;
 import org.springframework.scheduling.annotation.*;
 import org.springframework.scheduling.concurrent.*;
@@ -16,6 +15,7 @@ import org.springframework.transaction.support.*;
 import org.springframework.web.client.*;
 
 import javax.sql.*;
+import java.io.*;
 
 
 /**
@@ -31,11 +31,11 @@ public class ApplicationConfiguration {
 	/*
 	 * GENERAL CONFIGS
 	 */
-//	@Bean
-//	Utils getUtils() {
-//		Utils utils = new Utils();
-//		return utils;
-//	}
+	@Bean
+	App getApp() {
+		App app = new App();
+		return app;
+	}
 
 	/*
 	 * WEBSERVICE RELATED CONFIGS
@@ -76,8 +76,8 @@ public class ApplicationConfiguration {
 	}
 
 	@Bean
-	JdbcTemplate db() {
-		JdbcTemplate out = new JdbcTemplate(dataSource());
+	ExtendedJdbcTemplate db() {
+		ExtendedJdbcTemplate out = new ExtendedJdbcTemplate(dataSource());
 		return out;
 	}
 
@@ -92,6 +92,55 @@ public class ApplicationConfiguration {
 		scheduler.setPoolSize(3);
 		scheduler.setDaemon(true);
 		return scheduler;
+	}
+
+	@Bean
+	DbSetup dbSetup() {
+		ExtendedJdbcTemplate db = db();
+		PropertyBasedConfiguration config = config();
+
+		DbSetup setup = new DbSetup(db, config);
+		setupDb(setup);
+		return setup;
+	}
+
+	public static void setupDb(DbSetup setup) {
+		setup.setScriptDirProperty("database.script.dir");
+		setup.setScriptOrderProperty("database.tables");
+
+		PropertyBasedConfiguration config = setup.getConfig();
+		ExtendedJdbcTemplate db = setup.getDb();
+
+		if (!config.getBoolean("create.tables", false)) {
+			String script = setup.toCreateTablesScript();
+			String path = null;
+			if (!script.isEmpty()) {
+				try {
+					File tmp = File.createTempFile("script", ".sql");
+					path = tmp.getAbsolutePath();
+					FileUtils.writeStringToFile(tmp, script, "UTF-8", false);
+
+				} catch (Exception e) {
+					log.error("Unable to create temporary file with database DDL script.", e);
+				}
+
+				log.error("Database is not ready. Please run the following script as root: >>>\n" + script + "\n<<<.\nScript file saved to: " + path);
+
+				System.exit(0);
+			}
+		} else {
+			setup.createTables();
+		}
+
+		if (db.count("SELECT COUNT(*) FROM shop WHERE id = 0") == 0L) {
+			db.insert("INSERT INTO shop (id, shop_name, cipher) VALUES (?, ?, ?)", "0", "SYSTEM", new String(Utils.generateRandomCipherKey()));
+			db.update("UPDATE shop SET id = 0"); //Yay to MySQL
+		}
+
+		if (db.count("SELECT COUNT(*) FROM shop WHERE id = 0") == 0L) {
+			throw new IllegalStateException("System shop must have ID = 0.");
+		}
+
 	}
 
 }

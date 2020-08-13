@@ -1,0 +1,18 @@
+CREATE TABLE shop (
+
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	shop_name VARCHAR (127) NOT NULL,
+	cipher VARCHAR(64) NOT NULL,
+
+	shopify_id BIGINT,
+
+	shop_token VARCHAR (127),
+	invalid BIT DEFAULT 0 NOT NULL,
+	created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+    uninstall_info TEXT,
+
+    CONSTRAINT shop_pk PRIMARY KEY (id),
+    CONSTRAINT shop_uk UNIQUE (shop_name, deleted_at)
+);

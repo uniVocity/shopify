@@ -1,0 +1,10 @@
+CREATE TABLE app (
+
+	id BIGINT NOT NULL,
+	name VARCHAR(255) NOT NULL,
+	api_key VARCHAR (191),
+	shared_secret VARCHAR(255) NOT NULL,
+
+	CONSTRAINT app_pk PRIMARY KEY (id),
+	CONSTRAINT app_uk UNIQUE (api_key)
+);
