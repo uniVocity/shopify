@@ -21,8 +21,7 @@ build integrations with other large e-commerce platforms such as Woocommerce
 for WordPress, Magento, etc.
 
 Source code and documentation will be available here on this GitHub repository,
-and the work will begin once the **SHOP** pool starts generating rewards on the 
-Cardano mainnet.
+and the work has [already begun](https://github.com/uniVocity/shopify/commits/master)!
 
 ## Delegate to the **SHOP** pool to help expand the cardano ecosystem!
 
