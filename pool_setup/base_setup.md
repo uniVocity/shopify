@@ -538,11 +538,10 @@ ACCEPT - SSH - 22   - YOUR HOME IP
 ```
 
 You don't need to include the TCP connection on port 3001 for the Private IP address of your relay node(s)
-because private network traffic is not filtered by the Vultr firewall.
+in the same region as your block node because private network traffic is not filtered by the Vultr firewall.
 
-If you have more relay nodes, keep adding specific rules for each one of them.
-Also note that if your relay node is deployed in a different region than your block
-node, you won't be able to use the Private IP address. In that case use the public IP of your relay node.
+If you have a relay node that's deployed in a different region than your block node, it won't be able to 
+reach it over the private network. In that case add the public IP of your relay node.
 
 With the rules set, click on "linked instances" and add your relay node to firewall group "relay",
 and your block node instance to firewall group "block-node":
