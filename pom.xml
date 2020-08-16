@@ -73,6 +73,13 @@
         </repository>
     </distributionManagement>
 
+    <repositories>
+        <repository>
+            <id>ossrh</id>
+            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
+        </repository>
+    </repositories>
+
     <build>
         <plugins>
             <plugin>
@@ -126,6 +133,12 @@
     </parent>
 
     <dependencies>
+        <dependency>
+            <groupId>com.univocity</groupId>
+            <artifactId>univocity-parsers</artifactId>
+            <version>2.9.1-SNAPSHOT</version>
+        </dependency>
+
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>

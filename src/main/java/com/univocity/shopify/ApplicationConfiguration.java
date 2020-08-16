@@ -2,6 +2,8 @@ package com.univocity.shopify;
 
 
 import com.univocity.shopify.controllers.*;
+import com.univocity.shopify.dao.*;
+import com.univocity.shopify.email.*;
 import com.univocity.shopify.utils.*;
 import com.univocity.shopify.utils.database.*;
 import com.zaxxer.hikari.*;
@@ -31,6 +33,12 @@ public class ApplicationConfiguration {
 	/*
 	 * GENERAL CONFIGS
 	 */
+
+	@Bean
+	PropertyBasedConfiguration config() {
+		return new PropertyBasedConfiguration("config/application.properties");
+	}
+
 	@Bean
 	App getApp() {
 		App app = new App();
@@ -49,10 +57,47 @@ public class ApplicationConfiguration {
 		return out;
 	}
 
+	/*
+	 * DAOs
+	 */
 	@Bean
-	PropertyBasedConfiguration config() {
-		return new PropertyBasedConfiguration("config/application.properties");
+	ShopDao shops() {
+		return new ShopDao();
 	}
+
+	@Bean
+	CredentialsDao credentials() {
+		return new CredentialsDao();
+	}
+
+	@Bean
+	SystemMessageDao systemMessageDao() {
+		return new SystemMessageDao();
+	}
+
+	@Bean
+	EmailQueueDao emailQueueDao() {
+		return new EmailQueueDao();
+	}
+
+	@Bean
+	EmailQueue emailQueue() {
+		return new EmailQueue();
+	}
+
+	/*
+	 * SYSTEM
+	 */
+	@Bean
+	SystemMailSender mailSender() {
+		return new SystemMailSender();
+	}
+
+	@Bean
+	SystemMailSenderConfig getMailConfig() {
+		return new SystemMailSenderConfig();
+	}
+
 
 	@Bean
 	DataSource dataSource() {

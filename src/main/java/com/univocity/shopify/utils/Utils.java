@@ -15,18 +15,31 @@
  ******************************************************************************/
 package com.univocity.shopify.utils;
 
+import com.univocity.parsers.common.input.*;
+import com.univocity.shopify.exception.*;
+import org.apache.commons.collections4.*;
 import org.apache.commons.io.*;
+import org.apache.commons.lang3.*;
 import org.springframework.core.io.*;
+import org.springframework.http.*;
 import org.springframework.security.crypto.codec.*;
 
+import javax.servlet.http.*;
 import java.io.*;
+import java.lang.reflect.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.security.*;
+import java.time.*;
+import java.time.format.*;
 import java.util.*;
+import java.util.function.*;
 
+import static com.univocity.shopify.utils.Fnv64.*;
 import static java.lang.reflect.Array.*;
 import static java.sql.Connection.*;
+import static org.apache.commons.lang3.ArrayUtils.*;
+import static org.apache.commons.lang3.StringUtils.*;
 
 /**
  * An utility class for validating inputs.
@@ -852,28 +865,20 @@ public class Utils {
 		return name;
 	}
 
-
 	/**
-	 * Tests if a given {@code String} is null/empty/blank/
+	 * Tests if a given {@code Object} is not null and its String representation is not empty/blank
 	 *
 	 * @param s the string
 	 *
-	 * @return {@code true} if the given {@code String} is null, empty or blank, otherwise returns {@code false}
+	 * @return {@code true} if the given {@code Object} is not null, and its String representation is not empty nor blank, otherwise returns {@code false}
 	 */
-	public static final boolean isBlank(String s) {
-		return s == null || s.trim().isEmpty();
+	public static final boolean isNotBlank(Object s) {
+		if (s == null) {
+			return true;
+		}
+		return !isBlank(String.valueOf(s));
 	}
 
-	/**
-	 * Tests if a given {@code String} is not null/empty/blank/
-	 *
-	 * @param s the string
-	 *
-	 * @return {@code true} if the given {@code String} is not null, empty or blank, otherwise returns {@code false}
-	 */
-	public static final boolean isNotBlank(String s) {
-		return !isBlank(s);
-	}
 
 	/**
 	 * Replaces system properties between { and } in a given {@code String} with the property values, and returns the result.
@@ -977,12 +982,12 @@ public class Utils {
 	 * Encodes a value so it can be used as part of a URL.
 	 *
 	 * @param parameterValue the value to be encoded.
-	 * @param charsetName    charset to use for encoding the given value. If {@code null}, then UTF-8 will be used.
+	 * @param charset        charset to use for encoding the given value. If {@code null}, then UTF-8 will be used.
 	 *
 	 * @return the encoded value.
 	 */
-	public static final String encode(Object parameterValue, String charsetName) {
-		return encode(null, parameterValue, charsetName);
+	public static final String encode(Object parameterValue, Charset charset) {
+		return encode(null, parameterValue, charset);
 	}
 
 	/**
@@ -990,21 +995,21 @@ public class Utils {
 	 *
 	 * @param parameterName  name of the parameter associated with the value
 	 * @param parameterValue the value to be encoded.
-	 * @param charsetName    charset to use for encoding the given value. If {@code null}, then UTF-8 will be used.
+	 * @param charset        charset to use for encoding the given value. If {@code null}, then UTF-8 will be used.
 	 *
 	 * @return the encoded value.
 	 */
-	public static final String encode(String parameterName, Object parameterValue, String charsetName) {
+	public static final String encode(String parameterName, Object parameterValue, Charset charset) {
 		if (parameterValue == null) {
 			return null;
 		}
-		if (charsetName == null) {
-			charsetName = "UTF-8";
+		if (charset == null) {
+			charset = StandardCharsets.UTF_8;
 		}
 		String original = String.valueOf(parameterValue);
 
 		try {
-			return URLEncoder.encode(original, charsetName);
+			return URLEncoder.encode(original, charset.toString());
 		} catch (Exception ex) {
 			if (parameterName == null) {
 				throw new IllegalStateException("Error encoding value: " + parameterValue, ex);
@@ -1264,6 +1269,12 @@ public class Utils {
 		}
 	}
 
+	public static <T> String concatenate(String separator, T[] objects) {
+		StringBuilder out = new StringBuilder();
+		concatenate(out, separator, objects);
+		return out.toString();
+	}
+
 	public static <T> void concatenate(StringBuilder out, String separator, T[] objects) {
 		concatenate(out, separator, 0, objects);
 	}
@@ -1347,6 +1358,654 @@ public class Utils {
 		byte[] bytes = new byte[8];
 		new SecureRandom().nextBytes(bytes);
 		return Hex.encode(bytes);
+	}
+
+	public interface Converter<T> {
+		T convert(Object value);
+	}
+
+	public static final Converter<Long> longConverter = new Converter<Long>() {
+		@Override
+		public Long convert(Object value) {
+			if (value == null) {
+				return null;
+			}
+			return ((Number) value).longValue();
+		}
+	};
+
+	private static final Stack<ElasticCharAppender> builders = new Stack<ElasticCharAppender>();
+
+	/**
+	 * Maintains cached CharAppenders in a flyweight pattern, to minimize new CharAppender GCs. The CharAppender is
+	 * prevented from growing too large.
+	 * Care must be taken to release the builder once its work has been completed, with releaseBuilder()
+	 *
+	 * @return an empty CharAppender
+	 */
+	public static ElasticCharAppender borrowBuilder() {
+		return borrowBuilder(MaxCachedBuilderSize);
+	}
+
+	public static ElasticCharAppender borrowBuilder(int length) {
+		synchronized (builders) {
+			return builders.empty() || length > MaxCachedBuilderSize ? new ElasticCharAppender(length, "") : builders.pop();
+		}
+	}
+
+	private static final int MaxCachedBuilderSize = 8 * 1024;
+	private static final int MaxIdleBuilders = 32;
+
+	/**
+	 * Release a borrowed builder. Care must be taken not to use the builder after it has been returned, as its
+	 * contents may be changed by this method, or by a concurrent thread.
+	 *
+	 * @param sb the CharAppender to release.
+	 *
+	 * @return the string value of the released CharAppender (as an incentive to release it!).
+	 */
+	public static String releaseBuilder(ElasticCharAppender sb) {
+		String out = sb.getAndReset();
+		release(sb);
+		return out;
+	}
+
+	public static String trimAndReleaseBuilder(ElasticCharAppender sb) {
+		String out = sb.getTrimmedStringAndReset();
+		release(sb);
+		return out;
+	}
+
+	public static void discardBuilder(ElasticCharAppender sb) {
+		sb.reset();
+		release(sb);
+	}
+
+	private static void release(ElasticCharAppender sb) {
+		synchronized (builders) {
+			builders.push(sb);
+
+			while (builders.size() > MaxIdleBuilders) {
+				builders.pop();
+			}
+		}
+	}
+
+
+	public static long longHash(char[] string) {
+		return Fnv64.hash(string, 0, string.length);
+	}
+
+	public static long longHash(byte[] bytes) {
+		return Fnv64.hash(bytes, 0, bytes.length);
+	}
+
+	public static long longHash(long hash, String string) {
+		if (string != null) {
+			hash = Fnv64.hash(hash, string);
+		}
+		return hash;
+	}
+
+	public static long longHash(String string) {
+		return Fnv64.hash(string);
+	}
+
+	public static long longHash(long hash, String... strings) {
+		if (strings.length == 0) {
+			return hash;
+		}
+		hash = longHash(hash, strings[0]);
+		for (int i = 1; i < strings.length; i++) {
+			hash = longHash(hash, strings[i]);
+		}
+		return hash;
+	}
+
+	public static long longHash(String... strings) {
+		return longHash(FNV_64_INIT, strings);
+	}
+
+	public static String printStackTrace(Throwable ex) {
+		StringWriter w = new StringWriter();
+		PrintWriter pw = new PrintWriter(w);
+		try {
+			ex.printStackTrace(pw);
+			w.flush();
+			w.close();
+		} catch (Exception e) {
+			//ignore
+		}
+
+		return w.toString();
+	}
+
+	public static String shortenStackTrace(String stackTrace, int maxLines) {
+		ElasticCharAppender s = borrowBuilder();
+		try {
+			String[] parts = stackTrace.split("Caused by:");
+
+			for (int i = 0; i < parts.length; i++) {
+				String part = parts[i];
+				int lineCount = 0;
+				int j = 0;
+				for (; j < part.length(); j++) {
+					char ch = part.charAt(j);
+					if (ch == '\n') {
+						lineCount++;
+						if (lineCount == maxLines) {
+							break;
+						}
+					}
+				}
+				if (lineCount < maxLines) {
+					s.append(part);
+				} else {
+					s.append(part, 0, j);
+					s.append("\n        ...\nCaused by:");
+				}
+			}
+			return s.getAndReset();
+		} finally {
+			releaseBuilder(s);
+		}
+	}
+
+	public static int getTotalLength(Object... arrays) {
+		int totalLength = 0;
+		for (int i = 0; i < arrays.length; i++) {
+			if (arrays[i] == null) {
+				continue;
+			}
+			totalLength += Array.getLength(arrays[i]);
+		}
+		return totalLength;
+	}
+
+
+	public static boolean appendSeparatedBy(ElasticCharAppender out, String separator, Collection<?> values) {
+		if (CollectionUtils.isEmpty(values)) {
+			return false;
+		}
+		Iterator<?> it = values.iterator();
+		out.append(it.next());
+		while (it.hasNext()) {
+			out.append(separator);
+			out.append(it.next());
+		}
+		return true;
+	}
+
+	public static <T> T[] join(Object... arrays) {
+		int totalLength = getTotalLength(arrays);
+
+		Object out = Array.newInstance(arrays[0].getClass().getComponentType(), totalLength);
+
+		int destPos = 0;
+		for (int i = 0; i < arrays.length; i++) {
+			Object src = arrays[i];
+			if (src == null) {
+				continue;
+			}
+			int length = Array.getLength(src);
+			System.arraycopy(src, 0, out, destPos, length);
+			destPos += length;
+
+		}
+		return (T[]) out;
+
+	}
+
+	public static String getMandatoryValue(String key, Map<String, Object> result) {
+		String value = getValue(key, result);
+		if (value == null) {
+			throw new IllegalArgumentException("No value for key " + key);
+		}
+		return value;
+	}
+
+	public static String getValue(String key, Map<String, Object> result) {
+		Object value = result.get(key);
+		if (value == null) {
+			return null;
+		}
+		return value.toString();
+	}
+
+	public static void notNull(Object o, String message, Object... args) {
+		if (o == null) {
+			throw new IllegalArgumentException(message + " cannot be null. " + Arrays.toString(args));
+		}
+	}
+
+	public static void notNull(Object o, String message, Object arg1) {
+		if (o == null) {
+			notNull(null, message, new Object[]{arg1});
+		}
+	}
+
+	public static void notNull(Object o, String message, Object arg1, Object arg2) {
+		if (o == null) {
+			notNull(null, message, new Object[]{arg1, arg2});
+		}
+	}
+
+	public static void notNull(Object o, String message, Object arg1, Object arg2, Object arg3) {
+		if (o == null) {
+			notNull(null, message, new Object[]{arg1, arg2, arg3});
+		}
+	}
+
+	public static String newMessage(String msg, Object... args) {
+		return newMessage(msg, null, null, args);
+	}
+
+	public static String newMessage(String msg, Throwable ex, Object... args) {
+		return newMessage(msg, ex, null, args);
+	}
+
+	public static String newMessage(String msg, Throwable ex, String remedy, Object... args) {
+		if (args == null) {
+			args = EMPTY_OBJECT_ARRAY;
+		}
+
+
+		ElasticCharAppender out = borrowBuilder();
+		try {
+			String[] parts = splitByWholeSeparatorPreserveAllTokens(msg, "{}");
+			int i = 0;
+			for (String part : parts) {
+				out.append(part);
+				if (i < args.length) {
+					Object arg = args[i++];
+					out.append(toReadableString(arg));
+				}
+			}
+
+			if (ex != null && ex.getMessage() != null) {
+				out.append(": ");
+				out.append(ex.getMessage());
+			}
+
+			if (remedy != null) {
+				if (out.charAt(out.length() - 1) != '.') {
+					out.append(". ");
+				} else {
+					out.append(' ');
+				}
+				remedy = StringUtils.capitalize(remedy);
+				out.append(remedy);
+			}
+
+			return out.getAndReset();
+		} finally {
+			releaseBuilder(out);
+		}
+	}
+
+	private static String toReadableString(Object obj) {
+		if (obj == null) {
+			return "<null>";
+		}
+		if (obj instanceof Number) {
+			return String.valueOf(obj);
+		}
+		if (obj instanceof Class) {
+			return quote(((Class<?>) obj).getName());
+		}
+		if (obj instanceof File) {
+			return quote(((File) obj).getAbsolutePath());
+		}
+		if (isArray(obj)) {
+			if (obj.getClass() == int[].class) {
+				return Arrays.toString((int[]) obj);
+			} else if (obj.getClass() == char[].class) {
+				return Arrays.toString((char[]) obj);
+			} else if (obj.getClass() == long[].class) {
+				return Arrays.toString((long[]) obj);
+			} else if (obj.getClass() == boolean[].class) {
+				return Arrays.toString((boolean[]) obj);
+			} else if (obj.getClass() == byte[].class) {
+				return Arrays.toString((byte[]) obj);
+			} else if (obj.getClass() == double[].class) {
+				return Arrays.toString((double[]) obj);
+			} else if (obj.getClass() == float[].class) {
+				return Arrays.toString((float[]) obj);
+			} else if (obj.getClass() == short[].class) {
+				return Arrays.toString((short[]) obj);
+			}
+			return Arrays.toString((Object[]) obj);
+		}
+
+		if (obj instanceof Throwable) {
+			String message = ((Throwable) obj).getMessage();
+			if (StringUtils.isNotBlank(message)) {
+				return message;
+			}
+		}
+		return quote(true, String.valueOf(obj));
+	}
+
+	public static boolean isArray(Object obj) {
+		if (obj == null) {
+			return false;
+		}
+		return obj.getClass().isArray();
+	}
+
+	public static void enclose(String left, String right, String... strings) {
+		if (left == null) {
+			left = "";
+		}
+		if (right == null) {
+			right = "";
+		}
+		if (ArrayUtils.isNotEmpty(strings)) {
+			for (int i = 0; i < strings.length; i++) {
+				if (strings[i] != null) {
+					strings[i] = left + strings[i] + right;
+				}
+			}
+		}
+	}
+
+	public static String enclose(char wrapping, String string) {
+		return wrapping + string + wrapping;
+	}
+
+	public static String enclose(boolean skipIfQuoted, char wrapping, String string) {
+		if (skipIfQuoted) {
+			if (string.length() > 1 && string.charAt(0) == wrapping && string.charAt(string.length() - 1) == wrapping) {
+				return string;
+			}
+		}
+		return wrapping + string + wrapping;
+	}
+
+	public static String quote(String string) {
+		return enclose(false, '\'', string);
+	}
+
+	public static String quote(boolean skipIfQuoted, String string) {
+		return enclose(skipIfQuoted, '\'', string);
+	}
+
+	public static String quoteDouble(String string) {
+		return quoteDouble(false, string);
+	}
+
+	public static String quoteDouble(boolean skipIfQuoted, String string) {
+		return enclose(skipIfQuoted, '"', string);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, V[] values) {
+		return printKeyValuePairs(keys, "=", values);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values) {
+		return printKeyValuePairs(keys, separator, values, ", ");
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, V[] values, String pairSeparator) {
+		return printKeyValuePairs(keys, "=", values, pairSeparator);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator) {
+		return printKeyValuePairs(keys, separator, values, pairSeparator, null, null);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, V[] values, Function<V, String> valueTransformer) {
+		return printKeyValuePairs(keys, "=", values, ", ", null, valueTransformer, -1);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, Function<V, String> valueTransformer) {
+		return printKeyValuePairs(keys, separator, values, ", ", null, valueTransformer, -1);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, V[] values, String pairSeparator, Function<V, String> valueTransformer) {
+		return printKeyValuePairs(keys, "=", values, pairSeparator, null, valueTransformer, -1);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<V, String> valueTransformer) {
+		return printKeyValuePairs(keys, separator, values, pairSeparator, null, valueTransformer, -1);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer) {
+		return printKeyValuePairs(keys, separator, values, pairSeparator, keyTransformer, valueTransformer, -1);
+	}
+
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer, int length) {
+		StringBuilder out = new StringBuilder();
+
+		int maxLength = length == -1 ? Math.max(keys.length, values.length) : length;
+		for (int i = 0; i < maxLength; i++) {
+			if (keyTransformer != null) {
+				out.append(keyTransformer.apply(keys[i]));
+			} else {
+				out.append(keys[i]);
+			}
+			out.append(separator);
+			if (valueTransformer != null) {
+				out.append(valueTransformer.apply(values[i]));
+			} else {
+				out.append(values[i]);
+			}
+			out.append(pairSeparator);
+		}
+
+		return out.toString();
+	}
+
+	public static <T> void sameSize(T[] element1, T[] element2, String element1Name, String element2Name) {
+		notNull(element1, element1Name);
+		notNull(element2, element2Name);
+
+		if (element1.length != element2.length) {
+			throw new IllegalArgumentException(newMessage("{} ({} elements) must have the same number of elements as {} ({} elements)", element1Name, element1.length, element2Name, element2.length));
+		}
+	}
+
+	public static <K> LinkedHashSet<K> asLinkedHashSet(K... values) {
+		LinkedHashSet<K> out = new LinkedHashSet<>();
+		Collections.addAll(out, values);
+		return out;
+	}
+
+	public static String generateRandomString(int length, String charsToInclude) {
+		StringBuilder out = new StringBuilder();
+
+		for (int i = 0; i < length; i++) {
+			int charIndex = (int) (Math.random() * charsToInclude.length());
+			out.append(charsToInclude.charAt(charIndex));
+		}
+
+		return out.toString();
+	}
+
+	public static ZonedDateTime parseDateTime(String date) {
+		if (date == null) {
+			return null;
+		}
+		return ZonedDateTime.parse(date, DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX"));
+	}
+
+	public static String formatDateTime(ZonedDateTime date) {
+		if (date == null) {
+			return null;
+		}
+		return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX").format(date);
+	}
+
+	public static ZonedDateTime toLocalDateTime(Date date) {
+		if (date == null) {
+			return null;
+		}
+		Instant instant = Instant.ofEpochMilli(date.getTime());
+		return ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
+	}
+
+	public static boolean isRequestFromLocalhost(HttpServletRequest request) {
+		if (request == null) {
+			return true;
+		}
+		String ipAddress = request.getRemoteAddr();
+		return "0:0:0:0:0:0:0:1".equals(ipAddress) || "127.0.0.1".equals(ipAddress);
+	}
+
+
+	public static void executeLocal(HttpServletRequest request, Runnable action) {
+		if (isRequestFromLocalhost(request)) {
+			action.run();
+			return;
+		}
+		throw new ShopifyErrorException(HttpStatus.BAD_REQUEST, "Invalid request", returnInvalidRequestPlain());
+	}
+
+	public static <T> T executeLocal(HttpServletRequest request, Supplier<T> action) {
+		if (isRequestFromLocalhost(request)) {
+			return action.get();
+		}
+		throw new ShopifyErrorException(HttpStatus.BAD_REQUEST, "Invalid request", returnInvalidRequestPlain());
+	}
+
+	public static String execute(HttpServletRequest request, Supplier<String> action) {
+		if (isRequestFromLocalhost(request)) {
+			return action.get();
+		}
+		return returnInvalidRequestPlain();
+	}
+
+	public static String returnInvalidRequestPlain() {
+		return "Invalid request!";
+	}
+
+	public static java.sql.Date toSqlDate(String date) {
+		if (date == null) {
+			return null;
+		}
+		return java.sql.Date.valueOf(date);
+	}
+
+	public static java.sql.Date toSqlDate(ZonedDateTime zonedDateTime) {
+		if (zonedDateTime == null) {
+			return null;
+		}
+		return new java.sql.Date(zonedDateTime.toInstant().toEpochMilli());
+	}
+
+
+	public static String printRequest(HttpServletRequest httpRequest) {
+		ElasticCharAppender out = borrowBuilder();
+		try {
+
+			out.append(httpRequest.getScheme());
+			out.append(' ');
+			out.append(httpRequest.getMethod());
+			out.append(':');
+			out.append(httpRequest.getRequestURI());
+
+			Enumeration params = httpRequest.getParameterNames();
+			boolean first = true;
+			while (params.hasMoreElements()) {
+				if (first) {
+					out.append('?');
+					first = false;
+				} else {
+					out.append('&');
+				}
+				String paramName = (String) params.nextElement();
+				out.append(paramName);
+				out.append('=');
+				String[] values = httpRequest.getParameterValues(paramName);
+				if (values.length == 1) {
+					out.append(values[0]);
+				} else if (values.length > 1) {
+					out.append('[');
+					out.append(StringUtils.join(values, ","));
+					out.append(']');
+				}
+			}
+
+			out.append("\n----[ Headers ]----\n");
+
+			Enumeration headerNames = httpRequest.getHeaderNames();
+			while (headerNames.hasMoreElements()) {
+				String headerName = (String) headerNames.nextElement();
+				out.append(headerName);
+				out.append('=');
+				out.append(StringUtils.join(httpRequest.getHeaders(headerName), ','));
+				out.append('\n');
+			}
+
+//			String body = extractRequestBody(httpRequest);
+//			if (UStrings.isNotEmpty(body)) {
+//				out.append("----[ Body ]----\n");
+//				out.append(body);
+//				out.append("----------------");
+//			}
+
+			return out.toString();
+		} finally {
+			releaseBuilder(out);
+		}
+	}
+
+
+	public static String extractRequestBody(HttpServletRequest request) {
+		try {
+			return IOUtils.toString(request.getInputStream(), StandardCharsets.UTF_8);
+		} catch (Throwable e) {
+			return "";
+		}
+	}
+
+
+	public static String getParameter(Map<String, String[]> parameters, String parameter) {
+		String[] value = parameters.get(parameter);
+		if (value == null || value.length == 0) {
+			return null;
+		}
+
+//		for(int i = 0; i < value.length; i++){
+//			if(value[i].contains("@")) {
+//				value[i] = Utils.encode(value[i]);
+//			}
+//		}
+
+//		value = UArrays.removeDuplicates(value);
+
+		if (value.length > 1) {
+			return concatenate(",", value);
+		}
+		return value[0];
+	}
+
+	public static String removeParameter(Map<String, String[]> parameters, String parameter) {
+		String out = getParameter(parameters, parameter);
+		if (out != null) {
+			parameters.remove(parameter);
+		}
+		return out;
+	}
+
+	public static String getBaseUrl(HttpServletRequest request) {
+		String protocol = "https";
+		String host = request.getServerName();
+		if (host == null) {
+			host = request.getLocalAddr();
+		}
+		int port = request.getServerPort();
+
+		String portStr = port == -1 ? "" : ":" + port;
+		return protocol + "://" + host + portStr;
+	}
+
+	public static String getShopName(HttpServletRequest request) {
+		String shop = request.getHeader("X-Shopify-Shop-Domain");
+		if (StringUtils.isBlank(shop)) {
+			return null;
+		}
+		return shop;
 	}
 }
 

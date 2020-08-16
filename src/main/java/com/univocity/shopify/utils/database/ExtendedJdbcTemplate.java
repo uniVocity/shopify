@@ -1,5 +1,6 @@
 package com.univocity.shopify.utils.database;
 
+import com.univocity.parsers.common.*;
 import com.univocity.shopify.utils.*;
 import org.apache.commons.lang3.*;
 import org.springframework.dao.*;
@@ -282,5 +283,11 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
 		return out.toString();
 	}
 
+	public static String createDeleteStatement(String tableName, String[] columnsToMatch) {
+		StringBuilder out = new StringBuilder();
 
+		out.append("delete from ").append(tableName);
+		out.append(createWhere(columnsToMatch));
+		return out.toString();
+	}
 }

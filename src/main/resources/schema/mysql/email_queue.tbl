@@ -1,0 +1,20 @@
+CREATE TABLE email_queue (
+
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	shop_id BIGINT NOT NULL,
+	sent BIT NOT NULL DEFAULT 0,
+	hash BIGINT NOT NULL,
+
+	from_addr MEDIUMTEXT NOT NULL,
+	to_addr MEDIUMTEXT NOT NULL,
+	reply_to_addr MEDIUMTEXT,
+	title MEDIUMTEXT NOT NULL,
+	body TEXT NOT NULL,
+
+	created_at DATETIME,
+
+	CONSTRAINT email_queue_pk PRIMARY KEY (id),
+    CONSTRAINT email_queue_pk_uk UNIQUE (shop_id, id),
+    CONSTRAINT email_queue_entry_uk UNIQUE (hash),
+    CONSTRAINT email_queue_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id)
+);

@@ -1,0 +1,17 @@
+CREATE TABLE email_template (
+
+	shop_id BIGINT NOT NULL,
+    id BIGINT NOT NULL AUTO_INCREMENT,
+	type TINYINT NOT NULL,
+
+	title VARCHAR(512) NOT NULL,
+	body CLOB NOT NULL,
+
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    deleted_at TIMESTAMP,
+
+	CONSTRAINT email_template_pk PRIMARY KEY (id),
+    CONSTRAINT email_template_pk_uk UNIQUE (shop_id, id),
+    CONSTRAINT email_template_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id)
+);

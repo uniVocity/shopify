@@ -1,0 +1,14 @@
+CREATE TABLE system_message (
+
+	id BIGINT NOT NULL AUTO_INCREMENT,
+	type TINYINT NOT NULL,
+
+	title VARCHAR(512) NOT NULL,
+	body MEDIUMTEXT NOT NULL,
+
+	created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+
+	CONSTRAINT system_message_pk PRIMARY KEY (id)
+);
