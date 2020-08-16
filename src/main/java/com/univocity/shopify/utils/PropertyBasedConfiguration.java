@@ -279,6 +279,9 @@ public class PropertyBasedConfiguration {
 					found = true;
 				} else {
 					var = System.getProperty(key);
+					if(var == null){
+						var = System.getenv(key);
+					}
 				}
 			}
 
