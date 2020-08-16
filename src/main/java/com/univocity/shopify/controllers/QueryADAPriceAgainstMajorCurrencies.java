@@ -13,7 +13,7 @@ public class QueryADAPriceAgainstMajorCurrencies implements ICardanoExchangeRate
     private final BinanceApiRestClient client = factory.newRestClient();
 
     //Queries the Binance Exchange using the Java Binance API. Gets the current Cardano Price
-    //and the method then converts it and returns a useable double. 
+    //and the method then converts it and returns a useable double.
     @Override
     public double GetCardanoPriceInUSD() {
         String cardanoPrice;
