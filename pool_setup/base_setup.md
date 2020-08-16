@@ -532,16 +532,16 @@ ACCEPT - TCP - 3001 - 0.0.0.0/0
 
 Create another firewall group named "block-node", add the following rules for your relay node(s):
 
-Again, allow SSH only from your desktop computer (or more computers you might want to use).
-Again, and TCP connection on port 3001 only for the Private IP address of your relay node(s):
+Again, allow SSH only from your desktop computer (or more computers you might want to use):
 ```
 ACCEPT - SSH - 22   - YOUR HOME IP
-ACCEPT - TCP - 3001 - 10.9.96.4/32
 ```
 
-If you have more relay nodes, keep adding specific rules for each one of them.
-Also note that if your relay node is deployed in a different region than your block
-node, you won't be able to use the Private IP address. In that case use the public IP of your relay node.
+You don't need to include the TCP connection on port 3001 for the Private IP address of your relay node(s)
+in the same region as your block node because private network traffic is not filtered by the Vultr firewall.
+
+If you have a relay node that's deployed in a different region than your block node, it won't be able to 
+reach it over the private network. In that case add the public IP of your relay node.
 
 With the rules set, click on "linked instances" and add your relay node to firewall group "relay",
 and your block node instance to firewall group "block-node":
