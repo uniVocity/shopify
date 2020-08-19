@@ -70,8 +70,8 @@ public class AuthenticationService {
 		if(credentials.isShopInstalled(shopName)){
 			Shop shop = shops.getShop(shopName);
 			if(shop.isActive()){
-				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/univocity-license-manager'", shopName);
-				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/univocity-license-manager");
+				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
+				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
 			} else {
 				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
 				return new RedirectView(utils.getEndpoint(shop.getShopName(), "/billing/auth"));
@@ -102,15 +102,10 @@ public class AuthenticationService {
 			baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
 		}
 
-		boolean isOnline = Boolean.valueOf(online);
+		boolean isOnline = Boolean.parseBoolean(online);
 		String option = isOnline ? "per-user" : "";
 
-		String themeEditPermissions = "";
-		if (shopName.equals("univocity") || shopName.contains(".univocity.") || shopName.startsWith("univocity.")) {
-			themeEditPermissions = ",read_themes,write_themes,read_content,write_content";
-		}
-
-		String url = Shop.getAdminUrl(shopName) + "/oauth/authorize?client_id=" + apiKey + "&scope=read_orders,read_customers,read_products,write_draft_orders" + themeEditPermissions + "&redirect_uri=" + baseUrl + redirectEndpoint + "&state=" + nonce + "&grant_options[]=" + option;
+		String url = Shop.getAdminUrl(shopName) + "/oauth/authorize?client_id=" + apiKey + "&scope=read_orders,read_customers,read_products&redirect_uri=" + baseUrl + redirectEndpoint + "&state=" + nonce + "&grant_options[]=" + option;
 		log.info("Redirecting to installation URL of shop {}: {}", shopName, url);
 
 		RedirectView redirectView = new RedirectView();
@@ -127,7 +122,7 @@ public class AuthenticationService {
 		RedirectView redirectView = new RedirectView();
 		if(state == null){
 			log.info("Received app reinstall request from shop {}, redirecting to setting page", hostname);
-			redirectView.setUrl(Shop.getAdminUrl(hostname) + "/apps/univocity-license-manager");
+			redirectView.setUrl(Shop.getAdminUrl(hostname) + "/apps/cardano");
 			return redirectView;
 		}
 		redirectView.setUrl(Shop.getAdminUrl(hostname));
@@ -187,7 +182,7 @@ public class AuthenticationService {
 
 //		Charge charge = shopifyApiService.setupMonthlyFee(token.getShopName(), !utils.isLive(), null);
 
-		redirectView.setUrl(Shop.getAdminUrl(token.getShopName()) + "/apps/univocity-license-manager");
+		redirectView.setUrl(Shop.getAdminUrl(token.getShopName()) + "/apps/cardano");
 
 		return redirectView;
 	}

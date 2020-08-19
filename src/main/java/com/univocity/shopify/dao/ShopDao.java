@@ -214,7 +214,7 @@ public class ShopDao extends BaseDao {
 			} catch (Exception ex) {
 				String msg = "Error updating token of shop '" + shopName + "'";
 				log.error(msg, ex);
-				systemMailSender.sendErrorEmail("License server error", msg, ex);
+				systemMailSender.sendErrorEmail("Cardano app server error", msg, ex);
 				printFailedShopAndToken(shopName, shopToken);
 			}
 		} else {
