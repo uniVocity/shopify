@@ -43,14 +43,10 @@ Leave everything else untouched.
 
 Click `deploy now` and wait for the instance to be ready.
 
-Once done, the menu "Products" will show you the list of servers, like below:
-
-![image](../pool_setup/images/server_list.png)
+Once done, the menu "Products" will show you the list of servers.
 
 Click on your server, and copy the IP address. Also take note of
 the root password.
-
-![image](../pool_setup/images/server_details.png) 
  
 From the terminal on your local desktop, SSH into the server:
 
