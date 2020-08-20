@@ -30,14 +30,14 @@ public abstract class BaseDao {
 	protected PropertyBasedConfiguration config;
 
 	@Autowired
-	protected App utils;
+	protected App app;
 
 	@Autowired
 	protected ShopDao shops;
 
 
 	public boolean isDatabaseMySQL() {
-		return utils.isDatabaseMySQL();
+		return app.isDatabaseMySQL();
 	}
 
 	protected final <R> R executeTransaction(Function<TransactionStatus, R> f) {
@@ -54,14 +54,14 @@ public abstract class BaseDao {
 	}
 
 	protected final void notifyError(String msg, Object... args) {
-		utils.notifyError(msg, args);
+		app.notifyError(msg, args);
 	}
 
 	protected final void notifyError(Exception e, String msg, Object... args) {
-		utils.notifyError(e, msg, args);
+		app.notifyError(e, msg, args);
 	}
 
-	protected final Timestamp now() {
+	public static Timestamp now() {
 		return new Timestamp(System.currentTimeMillis());
 	}
 }

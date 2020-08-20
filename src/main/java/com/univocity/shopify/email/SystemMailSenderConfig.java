@@ -17,7 +17,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	private static final Logger log = LoggerFactory.getLogger(SystemMailSenderConfig.class);
 
 	@Autowired
-	App utils;
+	App app;
 
 	@Autowired
 	PropertyBasedConfiguration config;
@@ -40,7 +40,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	@Override
 	public String getSmtpHost() {
 		if (smtpHost == null) {
-			smtpHost = utils.getRequiredProperty("smtp.host");
+			smtpHost = app.getRequiredProperty("smtp.host");
 		}
 		return smtpHost;
 	}
@@ -80,7 +80,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	public Integer getSmtpPort() {
 		if (smtpPort == null) {
 			try {
-				smtpPort = Integer.parseInt(utils.getRequiredProperty("smtp.port"));
+				smtpPort = Integer.parseInt(app.getRequiredProperty("smtp.port"));
 			} catch (Exception e) {
 				log.error("'smtp.port' was not correctly set. Exiting");
 				System.exit(0);
@@ -94,7 +94,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	@Override
 	public String getReplyToAddress() {
 		if (replyToAddress == null) {
-			replyToAddress = utils.getRequiredProperty("reply.to.address");
+			replyToAddress = app.getRequiredProperty("reply.to.address");
 		}
 		return replyToAddress;
 	}
@@ -103,7 +103,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	@Override
 	public String getSmtpUsername() {
 		if (smtpUsername == null) {
-			smtpUsername = utils.getRequiredProperty("smtp.username");
+			smtpUsername = app.getRequiredProperty("smtp.username");
 		}
 		return smtpUsername;
 	}
@@ -112,7 +112,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	@Override
 	public char[] getSmtpPassword() {
 		if (smtpPassword == null) {
-			smtpPassword = utils.getRequiredProperty("smtp.password").toCharArray();
+			smtpPassword = app.getRequiredProperty("smtp.password").toCharArray();
 		}
 		return smtpPassword;
 	}
@@ -120,7 +120,7 @@ public class SystemMailSenderConfig implements MailSenderConfig {
 	@Override
 	public String getSmtpSender() {
 		if (smtpSender == null) {
-			smtpSender = utils.getRequiredProperty("smtp.sender");
+			smtpSender = app.getRequiredProperty("smtp.sender");
 		}
 		return smtpSender;
 	}

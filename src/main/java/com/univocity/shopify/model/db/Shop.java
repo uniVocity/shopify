@@ -387,7 +387,7 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public String getOwnerNameForEmailing() {
-		return App.getName(getShopOwnerName(), null, getShopName() + " administrator");
+		return Utils.getName(getShopOwnerName(), null, getShopName() + " administrator");
 	}
 
 	public void setUseOwnMailServer(Boolean useOwnServer) {

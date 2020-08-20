@@ -4,6 +4,7 @@ package com.univocity.shopify;
 import com.univocity.shopify.controllers.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
+import com.univocity.shopify.service.*;
 import com.univocity.shopify.utils.*;
 import com.univocity.shopify.utils.database.*;
 import com.zaxxer.hikari.*;
@@ -66,6 +67,38 @@ public class ApplicationConfiguration {
 	}
 
 	@Bean
+	CustomerDao customers() {
+		return new CustomerDao();
+	}
+
+	@Bean
+	OrdersDao orders() {
+		return new OrdersDao();
+	}
+
+	@Bean
+	LineItemDao lineItems() {
+		return new LineItemDao();
+	}
+
+	@Bean
+	ProductDao products() {
+		return new ProductDao();
+	}
+
+
+	@Bean
+	ImageDao images() {
+		return new ImageDao();
+	}
+
+
+	@Bean
+	VariantDao variants() {
+		return new VariantDao();
+	}
+
+	@Bean
 	CredentialsDao credentials() {
 		return new CredentialsDao();
 	}
@@ -84,6 +117,15 @@ public class ApplicationConfiguration {
 	EmailQueue emailQueue() {
 		return new EmailQueue();
 	}
+
+	/*
+	 * SERVICES
+	 */
+	@Bean
+	ProductService productService() {
+		return new ProductService();
+	}
+
 
 	/*
 	 * SYSTEM

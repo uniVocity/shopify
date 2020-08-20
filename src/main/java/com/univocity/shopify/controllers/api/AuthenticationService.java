@@ -32,10 +32,10 @@ public class AuthenticationService {
 	private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
 	@Autowired
-	private App utils;
+	App app;
 
 	@Autowired
-	private CredentialsDao credentials;
+	CredentialsDao credentials;
 
 	@Autowired
 	ShopifyApiService apiService;
@@ -74,7 +74,7 @@ public class AuthenticationService {
 				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
 			} else {
 				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
-				return new RedirectView(utils.getEndpoint(shop.getShopName(), "/billing/auth"));
+				return new RedirectView(app.getEndpoint(shop.getShopName(), "/billing/auth"));
 			}
 		} else {
 			log.info("Shop {} hitting /. Not installed. Redirecting to '/install' for installation", shopName);
@@ -153,7 +153,7 @@ public class AuthenticationService {
 		//   * The authorization code provided in the redirect described above.
 		String requestUrl = buildAccessTokenUrl(hostname);
 		log.info("Processing initial OAUTH authentication of shop {}", requestUrl);
-		Token token = utils.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", credentials.sharedSecret(), "code", authorizationCode});
+		Token token = app.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", credentials.sharedSecret(), "code", authorizationCode});
 
 		token.setShopName(hostname);
 
@@ -173,12 +173,12 @@ public class AuthenticationService {
 			shopDetails = apiService.getShopDetails(token.getShopName(), null);
 
 			shops.updateShopOwnerDetails(shops.getShop(token.getShopName()), shopDetails);
-			utils.sendEmailToShopOwner(token.getShopName(), MessageType.APP_INSTALLED);
+			app.sendEmailToShopOwner(token.getShopName(), MessageType.APP_INSTALLED);
 		} catch (Exception e) {
 			log.error("Error updating shop owner details. Shop: " + hostname, e);
 		}
 
-		utils.notify("App installed notification", "Shop " + token.getShopName() + " installed your app.\nDetails: " + shopDetails);
+		app.notify("App installed notification", "Shop " + token.getShopName() + " installed your app.\nDetails: " + shopDetails);
 
 //		Charge charge = shopifyApiService.setupMonthlyFee(token.getShopName(), !utils.isLive(), null);
 
@@ -244,7 +244,7 @@ public class AuthenticationService {
 		String requestUrl = buildAccessTokenUrl(shopName);
 
 		try {
-			Token newToken = utils.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", newSecret, "refresh_token", refreshToken, "access_token", oldToken});
+			Token newToken = app.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", newSecret, "refresh_token", refreshToken, "access_token", oldToken});
 			credentials.registerShopToken(shopName, newToken.accessToken, true);
 			return true;
 		} catch (Exception ex) {

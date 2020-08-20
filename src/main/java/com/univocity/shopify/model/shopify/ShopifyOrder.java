@@ -52,6 +52,9 @@ public class ShopifyOrder {
 	@JsonProperty("line_items")
 	public List<ShopifyLineItem> lineItems;
 
+	@JsonProperty("billing_address")
+	public ShopifyAddress billingAddress;
+
 	@JsonProperty("created_at")
 	@JsonDeserialize(using = ShopifyDateDeserializer.class)
 	@JsonSerialize(using = ShopifyDateSerializer.class)

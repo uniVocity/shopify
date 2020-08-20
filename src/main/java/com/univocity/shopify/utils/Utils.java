@@ -1,18 +1,4 @@
-/*******************************************************************************
- * Copyright 2014 Univocity Software Pty Ltd
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+
 package com.univocity.shopify.utils;
 
 import com.univocity.parsers.common.input.*;
@@ -1466,20 +1452,6 @@ public class Utils {
 		return longHash(FNV_64_INIT, strings);
 	}
 
-	public static String printStackTrace(Throwable ex) {
-		StringWriter w = new StringWriter();
-		PrintWriter pw = new PrintWriter(w);
-		try {
-			ex.printStackTrace(pw);
-			w.flush();
-			w.close();
-		} catch (Exception e) {
-			//ignore
-		}
-
-		return w.toString();
-	}
-
 	public static String shortenStackTrace(String stackTrace, int maxLines) {
 		ElasticCharAppender s = borrowBuilder();
 		try {
@@ -2006,6 +1978,70 @@ public class Utils {
 			return null;
 		}
 		return shop;
+	}
+
+	public static java.sql.Timestamp toTimestamp(ZonedDateTime date) {
+		if (date == null) {
+			return null;
+		}
+		return java.sql.Timestamp.valueOf(date.toLocalDateTime());
+	}
+
+	public static String getName(String first, String last, String alt) {
+		if (StringUtils.isBlank(first)) {
+			if (StringUtils.isBlank(last)) {
+				return alt;
+			} else {
+				return last;
+			}
+		}
+		return first;
+	}
+
+	public static String getOrderStatusUrl(String orderStatusUrl, String domain) {
+		if (orderStatusUrl != null && domain != null) {
+			if (!orderStatusUrl.startsWith("https://" + domain)) {
+				String currentDomain = StringUtils.substringBetween(orderStatusUrl, "https://", "/");
+				orderStatusUrl = StringUtils.replaceOnce(orderStatusUrl, currentDomain, domain);
+			}
+		}
+		return orderStatusUrl;
+	}
+
+	public static <T> void setTo(Collection<T> collection, Collection<T> source) {
+		collection.clear();
+		if (source != null) {
+			collection.addAll(source);
+		}
+	}
+
+	public static <T> void setTo(Collection<T> collection, T... source) {
+		collection.clear();
+		if (source != null) {
+			Collections.addAll(collection, source);
+		}
+	}
+
+	public static String printStackTrace(Throwable ex) {
+		StringWriter w = new StringWriter();
+		PrintWriter pw = new PrintWriter(w);
+		try {
+			ex.printStackTrace(pw);
+			w.flush();
+			w.close();
+		} catch (Exception e) {
+			//ignore
+		}
+
+		return w.toString();
+	}
+
+	public static int sum(int[] values) {
+		int total = 0;
+		for (int i = 0; i < values.length; i++) {
+			total += values[i];
+		}
+		return total;
 	}
 }
 

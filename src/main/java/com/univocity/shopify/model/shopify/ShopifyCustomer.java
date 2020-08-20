@@ -32,32 +32,6 @@ public class ShopifyCustomer {
 	@JsonSerialize(using = ShopifyDateSerializer.class)
 	public ZonedDateTime updatedAt;
 
-	@JsonProperty("accepts_marketing")
-	public boolean acceptsMarketing;
-
-	@JsonProperty("verified_email")
-	public boolean verifiedEmail;
-
-	@JsonProperty("tax_exempt")
-	public boolean taxExempt;
-
-	@JsonProperty
-	public String phone;
-
-	@JsonProperty
-	public String note;
-
-
-	@JsonProperty
-	public String password;
-
-	@JsonProperty("password_confirmation")
-	public String passwordConfirmation;
-
-
-	@JsonProperty("send_email_welcome")
-	public boolean sendEmailWelcome;
-
 
 	public ShopifyCustomer() {
 
@@ -72,14 +46,6 @@ public class ShopifyCustomer {
 				", lastName='" + lastName + '\'' +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
-				", acceptsMarketing=" + acceptsMarketing +
-				", verifiedEmail=" + verifiedEmail +
-				", taxExempt=" + taxExempt +
-				", phone='" + phone + '\'' +
-				", note='" + note + '\'' +
-				", password='" + password + '\'' +
-				", passwordConfirmation='" + passwordConfirmation + '\'' +
-				", sendEmailWelcome=" + sendEmailWelcome +
 				'}';
 	}
 }

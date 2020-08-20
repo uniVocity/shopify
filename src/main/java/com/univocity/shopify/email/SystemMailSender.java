@@ -15,7 +15,7 @@ public class SystemMailSender extends AbstractMailSender {
 	private SystemMailSenderConfig config;
 
 	@Autowired
-	private App utils;
+	private App app;
 
 	@Override
 	public MailSenderConfig getConfig() {
@@ -23,7 +23,7 @@ public class SystemMailSender extends AbstractMailSender {
 	}
 
 	public boolean sendEmail(String[] to, String title, String content) {
-		if (utils.isLive()) {
+		if (app.isLive()) {
 			return sendEmail(0L, to, title, content);
 		} else {
 			StringBuilder tmp = new StringBuilder();

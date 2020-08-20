@@ -24,7 +24,7 @@ public class EmailQueue {
 	EmailQueueDao emailQueueDao;
 
 	@Autowired
-	App utils;
+	App app;
 
 	@Autowired
 	ShopDao shopDao;
@@ -68,7 +68,7 @@ public class EmailQueue {
 		List<Email> emails = emailQueueDao.pollEmailsToSend(amount);
 		for (Email email : emails) {
 			try {
-				if (utils.isTestingLocally()) {
+				if (app.isTestingLocally()) {
 					log.info("Would send e-mail '" + email.getTitle() + "' to: " + email.getToAddressList() + " with text:\n" + email.getBody());
 				} else {
 					sendEmail(email);
@@ -167,7 +167,7 @@ public class EmailQueue {
 					msg.append("\r\n\r\nYour e-mail server got disabled temporarily and our own server will be used to send e-mails until you re-enable it in the settings page: https://");
 					msg.append(shop.getShopName());
 					msg.append("/");
-					msg.append(utils.getShopifyProxy());
+					msg.append(app.getShopifyProxy());
 					msg.append("/settings");
 					msg.append("\r\nIn the meantime your clients will receive emails from licenses@univocity.com");
 

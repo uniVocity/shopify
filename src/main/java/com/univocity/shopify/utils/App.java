@@ -14,6 +14,7 @@ import org.springframework.util.*;
 import org.springframework.web.client.*;
 
 import javax.annotation.*;
+import javax.servlet.http.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -107,17 +108,6 @@ public class App {
 			isMySql = config.getProperty("database.driver").contains("mysql");
 		}
 		return isMySql;
-	}
-
-	public static String getName(String first, String last, String alt) {
-		if (StringUtils.isBlank(first)) {
-			if (StringUtils.isBlank(last)) {
-				return alt;
-			} else {
-				return last;
-			}
-		}
-		return first;
 	}
 
 	public String getShopifyProxy() {
@@ -325,6 +315,60 @@ public class App {
 			}
 		} catch (Exception e) {
 			log.error("Error sending e-mail of type " + messageType + " to owner of shop " + shopName, e);
+		}
+	}
+
+	public <T> T parseJson(Class<T> outputType, String json) {
+		return toObject(outputType, json);
+	}
+
+	public <T> T toObject(Class<T> outputType, String json) {
+		try {
+			T object = (T) readerFor(outputType).readValue(json);
+			return object;
+		} catch (Exception e) {
+			String msg = "Error deserializing object of type '" + outputType + "' from JSON string: " + json;
+			log.error(msg, e);
+			if (systemMailSender != null) {
+				systemMailSender.sendErrorEmail("Cardano Shopify App server error", msg, e);
+			}
+			return null;
+		}
+	}
+
+	public static <T> T toObject(Class<T> outputType, HttpServletRequest request) {
+		try {
+			T object = (T) readerFor(outputType).readValue(request.getReader());
+			return object;
+		} catch (Exception e) {
+			String msg = "Error deserializing object of type '" + outputType + "' from request";
+			log.error(msg, e);
+			return null;
+		}
+	}
+
+	private static ObjectReader readerFor(Class outputType) {
+		ObjectReader out = objectReaders.get(outputType);
+		if (out == null) {
+			out = mapper.readerFor(outputType);
+			objectReaders.put(outputType, out);
+		}
+		return out;
+	}
+
+	public static ObjectWriter writerFor(Class outputType) {
+		ObjectWriter out = objectWriters.get(outputType);
+		if (out == null) {
+			out = mapper.writerFor(outputType);
+		}
+		return out;
+	}
+
+	public static String toJsonString(Object o) {
+		try {
+			return writerFor(o.getClass()).writeValueAsString(o);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
 		}
 	}
 }
