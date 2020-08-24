@@ -2,14 +2,18 @@ package com.univocity.shopify.utils;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.*;
+import com.univocity.shopify.controllers.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
+import com.univocity.shopify.exception.*;
 import com.univocity.shopify.model.db.*;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
+import org.springframework.security.web.util.*;
 import org.springframework.util.*;
 import org.springframework.web.client.*;
 
@@ -370,5 +374,88 @@ public class App {
 		} catch (Exception e) {
 			throw new IllegalStateException(e);
 		}
+	}
+
+
+	public boolean isShopInactive(String shopName) {
+		return !isShopActive(shopName);
+	}
+
+	public boolean isShopActive(String shopName) {
+		try {
+			return shops.getShop(shopName).isActive();
+		} catch (Exception e) {
+			notifyError(e, "Error finding shop with name " + shopName);
+			return false;
+		}
+	}
+
+	public Map<String, String[]> getShopifyProxyParams(HttpServletRequest request) {
+		Map<String, String[]> params = request.getParameterMap();
+
+		Map<String, String[]> refererParams;
+		if (!("/".equals(request.getServletPath()) || "/config".equals(request.getServletPath()))) {
+			String referrer = request.getHeader("referer");
+			if (StringUtils.isBlank(referrer)) {
+				throw new ValidationException("Error processing request");
+			}
+
+			referrer = decode(referrer);
+			refererParams = getUrlParameters(referrer);
+		} else {
+			refererParams = new HashMap<>();
+		}
+
+		if (isLive()) {
+			if (!ShopifyRequestValidation.isHostnameValid(params)) {
+				throw new ValidationException("Error processing request");
+			}
+
+			String[] shop = params.get("shop");
+			if (ArrayUtils.isEmpty(shop) || shop.length > 1 || StringUtils.isBlank(shop[0])) {
+				throw new ValidationException("Error processing request");
+			}
+
+			if (params.containsKey("signature")) {
+				Map<String, String[]> paramsToValidate = getShopifySignatureParameters(params);
+				if (!ShopifyRequestValidation.isSignatureValid(paramsToValidate, credentials.sharedSecret())) {
+					if (!ShopifyRequestValidation.isSignatureValid(params, credentials.sharedSecret())) { // file download uses all params for some reason.
+						throw new ValidationException("Error processing request");
+					}
+				}
+			} else {
+				if (!ShopifyRequestValidation.isHmacValid(params, credentials.sharedSecret())) {
+					throw new ValidationException("Error processing request");
+				}
+			}
+		}
+
+		refererParams.putAll(params);
+
+		return refererParams;
+	}
+
+	public static Map<String, String[]> getShopifySignatureParameters(Map<String, String[]> requestParams) {
+		Map<String, String[]> paramsToValidate = new HashMap<>();
+		paramsToValidate.put("shop", requestParams.get("shop"));
+		paramsToValidate.put("path_prefix", requestParams.get("path_prefix"));
+		paramsToValidate.put("timestamp", requestParams.get("timestamp"));
+		paramsToValidate.put("signature", requestParams.get("signature"));
+		return paramsToValidate;
+	}
+
+	public boolean isRequestInvalid(String shopName, HttpServletRequest request) {
+		return !isRequestValid(shopName, request);
+	}
+
+	public boolean isRequestValid(String shopName, HttpServletRequest request) {
+		if (isLive() && !ShopifyRequestValidation.isRequestValid(shopName, request, credentials.sharedSecret())) {
+			return false;
+		}
+		return true;
+	}
+
+	public String getApiKey(){
+		return config.getProperty("api.key");
 	}
 }

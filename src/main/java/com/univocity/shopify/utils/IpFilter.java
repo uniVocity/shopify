@@ -30,10 +30,10 @@ public class IpFilter implements Filter {
 	public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
 		String ip = IpBlocker.getIp(request);
 
-		if (!request.isSecure()) {
-			((HttpServletResponse) response).setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
-			return;
-		}
+//		if (!request.isSecure()) {
+//			((HttpServletResponse) response).setStatus(HttpServletResponse.SC_PRECONDITION_FAILED);
+//			return;
+//		}
 
 		String endpoint = IpBlocker.getEndpoint(request);
 		if(endpoint.endsWith(".ico")){

@@ -12,14 +12,17 @@ import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.annotation.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.*;
 
 import javax.servlet.http.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.concurrent.*;
 
 import static com.univocity.shopify.utils.Utils.*;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 
 /**
@@ -65,34 +68,37 @@ public class AuthenticationService {
 		return Shop.getAdminUrl(shopName) + "/oauth/access_token";
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
-	public RedirectView firstAccess(@RequestParam("shop") String shopName, HttpServletRequest request) {
-		if(credentials.isShopInstalled(shopName)){
-			Shop shop = shops.getShop(shopName);
-			if(shop.isActive()){
-				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
-				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
-			} else {
-				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
-				return new RedirectView(app.getEndpoint(shop.getShopName(), "/billing/auth"));
-			}
-		} else {
-			log.info("Shop {} hitting /. Not installed. Redirecting to '/install' for installation", shopName);
-			return generateAppInstallLink(shopName, "false", request);
-		}
+	@CrossOrigin(origins = "*", methods = GET)
+	@RequestMapping(value = "/shopify", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@ResponseBody
+	public String firstAccess(HttpServletRequest request) {
+		ParameterizedString html = new ParameterizedString(readTextFromResource("template/admin/install.html", StandardCharsets.UTF_8));
+
+		String url = getRedirectionURL(request);
+		html.set("REDIRECT", url);
+		html.set("API_KEY", app.getApiKey());
+
+		return html.applyParameterValues();
 	}
+//
+//	@RequestMapping(value = "/", method = RequestMethod.GET)
+//	public RedirectView firstAccess(@RequestParam("shop") String shopName, HttpServletRequest request) {
+//		if(credentials.isShopInstalled(shopName)){
+//			Shop shop = shops.getShop(shopName);
+//			if(shop.isActive()){
+//				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
+//				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
+//			} else {
+//				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
+//				return new RedirectView(app.getEndpoint(shop.getShopName(), "/billing/auth"));
+//			}
+//		} else {
+//			log.info("Shop {} hitting /. Not installed. Redirecting to '/install' for installation", shopName);
+//			return generateAppInstallLink(shopName, "false", request);
+//		}
+//	}
 
-	@RequestMapping(value = "/install", method = RequestMethod.GET)
-	public RedirectView generateAppInstallLink(@RequestParam("shop") String shopName, HttpServletRequest request) {
-		log.info("Received app installation request for shop {}", shopName);
-		return generateAppInstallLink(shopName, "false", request);
-	}
-
-	public RedirectView generateAppInstallLink(String shopName, String online, HttpServletRequest request) {
-		String nonce = UUID.randomUUID().toString().replaceAll("-", "");
-		nonces.put(nonce, System.currentTimeMillis());
-
-		String apiKey = credentials.apiKey();
+	private String getRedirectionURL(HttpServletRequest request) {
 		String redirectEndpoint = "/login";
 
 		String baseUrl = getBaseUrl(request);
@@ -102,25 +108,15 @@ public class AuthenticationService {
 			baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
 		}
 
-		boolean isOnline = Boolean.parseBoolean(online);
-		String option = isOnline ? "per-user" : "";
-
-		String url = Shop.getAdminUrl(shopName) + "/oauth/authorize?client_id=" + apiKey + "&scope=read_orders,read_customers,read_products&redirect_uri=" + baseUrl + redirectEndpoint + "&state=" + nonce + "&grant_options[]=" + option;
-		log.info("Redirecting to installation URL of shop {}: {}", shopName, url);
-
-		RedirectView redirectView = new RedirectView();
-		redirectView.setUrl(url);
-
-		return redirectView;
+		return baseUrl + redirectEndpoint;
 	}
-
 
 	@RequestMapping("/login")
 	//Redirection URL (required). //Shopify calls this: https://example.org/some/redirect/uri?code={authorization_code}&hmac=da9d83c171400a41f8db91a950508985&timestamp=1409617544&state={nonce}&shop={hostname}
 	public RedirectView auth(@RequestParam("code") String authorizationCode, @RequestParam("shop") String hostname, @RequestParam(value = "state", required = false) String state, HttpServletRequest request) {
 		log.info("Processing shop registration: Shop {}", hostname);
 		RedirectView redirectView = new RedirectView();
-		if(state == null){
+		if (state == null) {
 			log.info("Received app reinstall request from shop {}, redirecting to setting page", hostname);
 			redirectView.setUrl(Shop.getAdminUrl(hostname) + "/apps/cardano");
 			return redirectView;

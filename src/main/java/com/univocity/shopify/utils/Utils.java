@@ -2043,6 +2043,142 @@ public class Utils {
 		}
 		return total;
 	}
+
+	public static String returnErrorJson(String error) {
+		return "{\"error\":\"" + removeUnsafeJsonCharacters(error) + "\"}";
+	}
+
+	public static String removeUnsafeJsonCharacters(String s) {
+		s = s.replace('"', '\'');
+		s = StringUtils.replace(s, "\n", "<br>");
+
+		return removeAny(s, "\b\f\n\r\t\\");
+	}
+
+	public static String returnInvalidRequestJson() {
+		return returnErrorJson(returnInvalidRequestPlain());
+	}
+
+	public static String removeAny(String s, String charsToRemove) {
+		char[] toRemove = charsToRemove.toCharArray();
+		Arrays.sort(toRemove);
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char ch = s.charAt(i);
+
+			if (Arrays.binarySearch(toRemove, ch) < 0) {
+				out.append(ch);
+			}
+		}
+
+		return out.toString();
+	}
+
+	public static Map<String, String[]> getUrlParameters(String url) {
+		HashMap<String, String[]> urlMap = new HashMap<String, String[]>();
+		int start = url.indexOf('?') + 1;
+		if (start == 0) {
+			return urlMap;
+		}
+
+		CharAppender tmp = new ExpandingCharAppender(128, "", 0);
+		String[] values = EMPTY_STRING_ARRAY;
+		String param = null;
+		boolean inArray = false;
+		boolean inValue = false;
+		int arrayIndex = 0;
+
+		for (int i = start; i < url.length(); i++) {
+			char ch = url.charAt(i);
+
+			if (ch == '=') {
+				param = tmp.getAndReset();
+				inValue = true;
+			} else if (ch == '&') {
+				inValue = false;
+				storeParam(param, values, urlMap, tmp, arrayIndex);
+
+				inArray = false;
+				arrayIndex = 0;
+
+				param = null;
+				values = EMPTY_STRING_ARRAY;
+			} else if (ch == '[') {
+				if (inValue) {
+					inArray = true;
+					int valueCount = countMatches(url, ',', i + 1, ']') + 1; //number of commas + 1
+					values = new String[valueCount];
+				} else {
+					for (++i; i < url.length(); ) {
+						ch = url.charAt(i);
+						if (ch == ']') {
+							break;
+						}
+						i++;
+					}
+				}
+			} else if (ch == ',' && inArray) {
+				values[arrayIndex++] = tmp.getAndReset();
+			} else if (ch != ']') {
+				tmp.append(ch);
+			} else if (inArray) {
+				inArray = false;
+			}
+		}
+		if (tmp.length() > 0) {
+			if (param == null) {
+				param = tmp.getAndReset();
+			}
+			storeParam(param, values, urlMap, tmp, arrayIndex);
+		}
+
+		return urlMap;
+	}
+
+	private static int storeParam(String param, String[] values, Map<String, String[]> urlMap, CharAppender tmp, int arrayIndex) {
+		if (values.length == 0) {
+			if (tmp.length() != 0) {
+				values = new String[]{tmp.getAndReset()};
+			}
+		} else {
+			values[arrayIndex++] = tmp.getAndReset();
+		}
+
+		if (urlMap.containsKey(param)) {
+			String[] previous = urlMap.get(param);
+			if (previous == null || previous.length == 0) {
+				urlMap.put(param, values);
+			} else if (values != null && values.length > 0) {
+				int previousLength = previous.length;
+				previous = Arrays.copyOf(previous, previousLength + values.length);
+				System.arraycopy(values, 0, previous, previousLength, values.length);
+				urlMap.put(param, previous);
+			} //else keep previous
+		} else {
+			urlMap.put(param, values);
+		}
+		return arrayIndex;
+	}
+
+	public static int countMatches(final CharSequence str, final char ch, int from, char to) {
+		if (isEmpty(str)) {
+			return 0;
+		}
+		int count = 0;
+		char c;
+		// We could also call str.toCharArray() for faster look ups but that would generate more garbage.
+		for (int i = from; i < str.length(); i++) {
+			c = str.charAt(i);
+			if (ch == c) {
+				count++;
+			}
+			if (c == to) {
+				break;
+			}
+		}
+		return count;
+	}
+
 }
 
 

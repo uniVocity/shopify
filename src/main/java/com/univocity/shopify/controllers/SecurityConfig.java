@@ -8,6 +8,7 @@ import org.springframework.http.*;
 import org.springframework.security.config.annotation.authentication.builders.*;
 import org.springframework.security.config.annotation.web.builders.*;
 import org.springframework.security.config.annotation.web.configuration.*;
+import org.springframework.security.web.header.writers.*;
 
 import java.util.*;
 
@@ -28,9 +29,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 		} else {
 			csp = "default-src * 'unsafe-inline'; img-src *; frame-ancestors *;";
 		}
-
 		http
-				.requiresChannel().anyRequest().requiresSecure().and()
+//				.requiresChannel().anyRequest().requiresSecure().and()
 				.authorizeRequests()
 				.antMatchers(HttpMethod.OPTIONS, "/**").denyAll()
 				.antMatchers(HttpMethod.TRACE, "/**").denyAll()
@@ -38,7 +38,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 				.antMatchers(HttpMethod.HEAD, "/**").denyAll()
 				.antMatchers(HttpMethod.DELETE, "/**").denyAll()
 				.antMatchers("/admin/**").authenticated()
-				.antMatchers("/shopify/**").authenticated()
 				.antMatchers("/refresh_tokens").authenticated()
 				.anyRequest().permitAll()
 				.and()
