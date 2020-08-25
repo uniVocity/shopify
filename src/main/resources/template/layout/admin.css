@@ -1,0 +1,43 @@
+html {
+    font-size: 62.5%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    background-color: #f4f6f8
+}
+
+body {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    font-weight: 400;
+    text-transform: initial;
+    letter-spacing: initial;
+    color: #212b35;
+    font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif
+}
+
+p {
+    margin: 0
+}
+
+input {
+    font-size: 14px;
+    line-height: 24px;
+    font-family: -apple-system, BlinkMacSystemFont, San Francisco, Segoe UI, Roboto, Helvetica Neue, sans-serif
+}
+
+.icon-button {
+	color: transparent;
+	width: 18px;
+	height: 18px;
+	margin: 0px 3px;
+}
+
+.external-link {
+    width: 10px;
+    height: 10px;
+    margin-top: -20px;
+}

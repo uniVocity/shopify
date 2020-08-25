@@ -11,15 +11,19 @@ import org.slf4j.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.math.*;
+import java.nio.charset.*;
 import java.text.*;
 import java.util.*;
 import java.util.function.*;
 
+import static com.univocity.shopify.controllers.view.ActivationController.*;
+import static com.univocity.shopify.controllers.view.ShopPreferencesFormController.*;
 import static com.univocity.shopify.utils.Utils.*;
 
 public class ViewUtils {
 
 	static final Logger log = LoggerFactory.getLogger(ViewUtils.class);
+	static final String js = readTextFromResource("template/layout/app.js", StandardCharsets.UTF_8);
 
 	static String getDefaultAmountMessage(BigDecimal current, BigDecimal productAmount, BigDecimal maxAmount, String msg, char symbol) {
 		if (current != null) {
@@ -90,8 +94,10 @@ public class ViewUtils {
 		String shopName = params.get("shop")[0];
 
 		if (app.isShopInactive(shopName)) {
-			log.warn("Refusing to process '{}' action as shop is inactive", action);
-			return Utils.returnErrorJson("Cardano payment system disabled. Please reinstall the app on your shop.");
+			if (!(ACTIVATE_APP_ACTION.equals(action) || AUTHORIZE_APP_ACTION.equals(action) || PREFERENCES_VIEW_ACTION.equals(action))) {
+				log.warn("Refusing to process '{}' action as shop is inactive", action);
+				return Utils.returnErrorJson("Cardano payment system disabled. Please reinstall the app on your shop.");
+			}
 		}
 
 		String[] ids = params.get("id");
@@ -170,5 +176,28 @@ public class ViewUtils {
 				releaseBuilder(msg);
 			}
 		}
+	}
+
+	public static void applyProxyTemplateValues(App app, String shop, ParameterizedString out){
+		if (out.contains("SHOP")) {
+			String domain = app.getShopDomain(shop);
+			out.set("SHOP", domain);
+		}
+		if (out.contains("PROXY")) {
+			if(app.isTestingLocally()){
+				out.set("PROXY", ".");
+			} else {
+				out.set("PROXY", app.getShopifyProxy());
+			}
+		}
+	}
+
+	static ParameterizedString newTemplate(String path, String defaultValue) {
+		ParameterizedString template = new ParameterizedString(readTextFromResource(path, StandardCharsets.UTF_8));
+		if (template.contains("JS")) {
+			template.set("JS", js);
+		}
+		template.setDefaultValue(defaultValue);
+		return template;
 	}
 }

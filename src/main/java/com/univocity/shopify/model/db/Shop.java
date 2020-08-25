@@ -44,7 +44,6 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	private Long shopifyId;
 
 	private Boolean active;
-	private Long chargeId;
 
 	private EmailQueue emailQueue;
 
@@ -396,11 +395,11 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public boolean getUseOwnMailServer() {
-		return useOwnEmailServer == null ? false : useOwnEmailServer;
+		return useOwnEmailServer != null && useOwnEmailServer;
 	}
 
 	public boolean isActive() {
-		return active == null || chargeId == null ? false : active;
+		return active == null || active;
 	}
 
 	public boolean isInactive() {

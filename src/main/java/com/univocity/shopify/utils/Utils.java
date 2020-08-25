@@ -1865,6 +1865,39 @@ public class Utils {
 		return new java.sql.Date(zonedDateTime.toInstant().toEpochMilli());
 	}
 
+	public static String printRequestParameters(HttpServletRequest httpRequest){
+		ElasticCharAppender out = borrowBuilder();
+		try {
+			appendRequestParameters(out, httpRequest);
+			return out.getAndReset();
+		} finally {
+			releaseBuilder(out);
+		}
+	}
+
+	public static void appendRequestParameters(CharAppender out, HttpServletRequest httpRequest){
+		Enumeration<String> params = httpRequest.getParameterNames();
+		boolean first = true;
+		while (params.hasMoreElements()) {
+			if (first) {
+				out.append('?');
+				first = false;
+			} else {
+				out.append('&');
+			}
+			String paramName = params.nextElement();
+			out.append(paramName);
+			out.append('=');
+			String[] values = httpRequest.getParameterValues(paramName);
+			if (values.length == 1) {
+				out.append(values[0]);
+			} else if (values.length > 1) {
+				out.append('[');
+				out.append(StringUtils.join(values, ","));
+				out.append(']');
+			}
+		}
+	}
 
 	public static String printRequest(HttpServletRequest httpRequest) {
 		ElasticCharAppender out = borrowBuilder();
@@ -1876,27 +1909,7 @@ public class Utils {
 			out.append(':');
 			out.append(httpRequest.getRequestURI());
 
-			Enumeration params = httpRequest.getParameterNames();
-			boolean first = true;
-			while (params.hasMoreElements()) {
-				if (first) {
-					out.append('?');
-					first = false;
-				} else {
-					out.append('&');
-				}
-				String paramName = (String) params.nextElement();
-				out.append(paramName);
-				out.append('=');
-				String[] values = httpRequest.getParameterValues(paramName);
-				if (values.length == 1) {
-					out.append(values[0]);
-				} else if (values.length > 1) {
-					out.append('[');
-					out.append(StringUtils.join(values, ","));
-					out.append(']');
-				}
-			}
+			appendRequestParameters(out, httpRequest);
 
 			out.append("\n----[ Headers ]----\n");
 
@@ -2178,6 +2191,12 @@ public class Utils {
 		}
 		return count;
 	}
+
+	public static String getEscapedUrl(String url) {
+		url = StringUtils.replace(url, "/", "\\/");
+		return url;
+	}
+
 
 }
 

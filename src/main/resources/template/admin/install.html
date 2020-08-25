@@ -8,6 +8,7 @@
 		var actions = AppBridge.actions;
 		var Redirect = actions.Redirect;
 		var apiKey = '{API_KEY}';
+		var nonce = '{NONCE}';
 		var shopOrigin = new URL(window.location.href).searchParams.get("shop");
 
 		var redirectUri = '{REDIRECT}';
@@ -16,8 +17,9 @@
 			'/admin'+
 			'/oauth/authorize?client_id='+
 			apiKey+
-			'&scope=read_products,read_content&redirect_uri='+
-			redirectUri;
+			'&scope=read_orders,read_products&redirect_uri='+
+			redirectUri+
+			'&state=' + nonce;
 
 		if (window.top == window.self) {
 			window.location.assign(permissionUrl);

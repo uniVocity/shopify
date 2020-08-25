@@ -180,8 +180,8 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
 		});
 	}
 
-	public long count(String sql) {
-		Number result = queryForOptionalObject(sql, Number.class);
+	public long count(String sql, Object ... args) {
+		Number result = queryForOptionalObject(sql, args, Number.class);
 		return result.longValue();
 	}
 

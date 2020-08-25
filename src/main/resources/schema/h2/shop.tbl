@@ -6,12 +6,32 @@ CREATE TABLE shop (
 
     shopify_id BIGINT,
 
+    owner_email VARCHAR(255),
+	customer_email VARCHAR(124),
+	domain VARCHAR(124),
+	phone VARCHAR(64),
+	owner_name VARCHAR(255),
+	timezone VARCHAR(124),
+	country VARCHAR(3),
+	city VARCHAR(255),
+
+	use_own_email_server BIT DEFAULT 0,
+    smtp_host VARCHAR(255),
+    smtp_tls_ssl BIT DEFAULT 1,
+    smtp_port INTEGER DEFAULT 0,
+    smtp_username  VARCHAR(255),
+    smtp_password VARCHAR(512),
+    smtp_sender VARCHAR(255),
+	email_notification_list VARCHAR(2048),
+	reply_to_address VARCHAR(255),
+
 	shop_token VARCHAR (127),
 	invalid BIT NOT NULL DEFAULT 0,
 	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     deleted_at TIMESTAMP,
     uninstall_info VARCHAR(8192),
+    active BIT NOT NULL DEFAULT 0,
 
     CONSTRAINT shop_pk PRIMARY KEY (id),
     CONSTRAINT shop_uk UNIQUE (shop_name, deleted_at)

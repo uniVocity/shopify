@@ -1,0 +1,59 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="https://{SHOP}/{PROXY}/layout/app.css"/>
+	<link rel="stylesheet" type="text/css" href="https://{SHOP}/{PROXY}/layout/admin.css"/>
+	<script src="https://{SHOP}/{PROXY}/layout/app.js" type="text/javascript"></script>
+
+	<script>
+		function authorize(source) {
+			document.getElementById("save_spinner").style.display = "block";
+			try {
+				disableClick(source);
+
+				submitFormAjax(source, "https://{SHOP}/{PROXY}/blockchain/authorize", '', function (response) {
+					if (response.url) {
+						showPopup("save_msg", "Waiting for Shopify");
+						window.top.location.href = response.url;
+					}
+				}, function () {
+					enableClick(source);
+					document.getElementById("save_spinner").style.display = "none";
+				});
+			} catch (err) {
+				showPopup("save_msg", err);
+				enableClick(source);
+				document.getElementById("save_spinner").style.display = "none";
+			}
+		}
+	</script>
+</head>
+<body>
+<div>
+	<section class="section">
+		<div class="section-description">
+			<div class="section-description"><h2>Please authorize payments through the Cardano blockchain to begin.</h2></div>
+			<div class="card">
+				<h2>Cardano Payment Activation</h2>
+				<p>
+					(TBD) terms to use the cardano blockchain to process payments through Shopify (TBD)
+				</p>
+			</div>
+		</div>
+	</section>
+
+	<div class="page-actions" style="padding-bottom: 0px; margin-bottom: -10px;">
+		<label class="description">By clicking "I agree", you agree to the Cardano Payment gateway for Shopify
+			<a href="https://www.univocity.com/pages/univocity-license-manager-license-agreement" target="_blank">License Agreement</a> and that you have read its
+			<a href="https://www.univocity.com/pages/license_manager_privacy_policy" target="_blank">Privacy Policy</a>
+		</label>
+	</div>
+	<div class="page-actions no-border">
+		<a class="button" onclick="window.history.back();">Back</a>
+		<a class="button popup" onclick="authorize(this); return false;">I agree
+			<span class="popuptext" id="save_msg" onclick="hide(event, this); return false;"></span>
+		</a>
+		<div id="save_spinner" class="loader" style="display: none"></div>
+	</div>
+</div>
+</body>
+</html>

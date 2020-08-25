@@ -8,6 +8,7 @@ import com.univocity.shopify.exception.*;
 import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.database.*;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
@@ -15,8 +16,6 @@ import org.springframework.jdbc.core.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.concurrent.*;
-
-import org.apache.commons.codec.binary.Base64;
 
 import static com.univocity.shopify.utils.Utils.*;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -43,7 +42,7 @@ public class ShopDao extends BaseDao {
 	private Map<String, Shop> shopsByName;
 	private Map<Long, Shop> shopsById;
 
-	public void clearCaches(){
+	public void clearCaches() {
 		shopsByName.clear();
 		shopsById.clear();
 	}
@@ -195,8 +194,8 @@ public class ShopDao extends BaseDao {
 		return getShop(shopName).getShopToken();
 	}
 
-	public boolean isShopInstalled(String shopName){
-		return db.count("SELECT COUNT(*) FROM shop WHERE shop_name = ? AND shop_token IS NOT NULL AND deleted_at IS NULL") == 1;
+	public boolean isShopInstalled(String shopName) {
+		return db.count("SELECT COUNT(*) FROM shop WHERE shop_name = ? AND shop_token IS NOT NULL AND deleted_at IS NULL", shopName) == 1;
 	}
 
 	public void registerShopToken(String shopName, String shopToken, boolean refreshing) {
@@ -437,7 +436,7 @@ public class ShopDao extends BaseDao {
 		try {
 			db.update("UPDATE shop SET active = 0 WHERE id = " + shop.getId());
 			shop.setActive(false);
-		}finally {
+		} finally {
 			systemMailSender.sendEmail("Disabling shop " + shop.getId(), "Please review");
 		}
 	}
@@ -449,5 +448,14 @@ public class ShopDao extends BaseDao {
 			shop.setShopAuth(null);
 			getShopsById().remove(shop.getId());
 		}
+	}
+
+	public void activateShop(Shop shop) {
+		if (shop.isActive()) {
+			return;
+		}
+
+		shop.setActive(true);
+		db.update("UPDATE shop SET active = 1 WHERE id = " + shop.getId());
 	}
 }

@@ -59,7 +59,7 @@ public class AuthenticationService {
 
 	private String refreshToken;
 
-	private TimedCache<String, Long> nonces = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), 1000);
+	private final TimedCache<String, Long> nonces = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), 1000);
 
 	private static String buildAccessTokenUrl(String shopName) {
 		if (StringUtils.isBlank(shopName)) {
@@ -69,37 +69,45 @@ public class AuthenticationService {
 	}
 
 	@CrossOrigin(origins = "*", methods = GET)
-	@RequestMapping(value = "/shopify", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@RequestMapping(value = "/", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	@ResponseBody
-	public String firstAccess(HttpServletRequest request) {
+	public RedirectView firstAccess(@RequestParam("shop") String shopName, HttpServletRequest request) {
+		if (credentials.isShopInstalled(shopName)) {
+			Shop shop = shops.getShop(shopName);
+			if (shop.isActive()) {
+				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
+				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
+			} else {
+				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/blockchain/activation' for installation", shopName);
+				return new RedirectView(app.getEndpoint(shop.getShopName(), "/blockchain/activation"));
+			}
+		}
+
+		String parameters = Utils.printRequestParameters(request);
+		RedirectView out = new RedirectView("/install_page"+parameters);
+		return out;
+	}
+
+	@CrossOrigin(origins = "*", methods = GET)
+	@RequestMapping(value = "/install_page", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@ResponseBody
+	public String installPage(HttpServletRequest request) {
 		ParameterizedString html = new ParameterizedString(readTextFromResource("template/admin/install.html", StandardCharsets.UTF_8));
+
+		String nonce = UUID.randomUUID().toString().replaceAll("-", "");
+		nonces.put(nonce, System.currentTimeMillis());
 
 		String url = getRedirectionURL(request);
 		html.set("REDIRECT", url);
+		html.set("NONCE", nonce);
 		html.set("API_KEY", app.getApiKey());
+
 
 		return html.applyParameterValues();
 	}
-//
-//	@RequestMapping(value = "/", method = RequestMethod.GET)
-//	public RedirectView firstAccess(@RequestParam("shop") String shopName, HttpServletRequest request) {
-//		if(credentials.isShopInstalled(shopName)){
-//			Shop shop = shops.getShop(shopName);
-//			if(shop.isActive()){
-//				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
-//				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
-//			} else {
-//				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
-//				return new RedirectView(app.getEndpoint(shop.getShopName(), "/billing/auth"));
-//			}
-//		} else {
-//			log.info("Shop {} hitting /. Not installed. Redirecting to '/install' for installation", shopName);
-//			return generateAppInstallLink(shopName, "false", request);
-//		}
-//	}
 
 	private String getRedirectionURL(HttpServletRequest request) {
-		String redirectEndpoint = "/login";
+		String redirectEndpoint = "/install";
 
 		String baseUrl = getBaseUrl(request);
 		if (baseUrl.endsWith(":80")) {
@@ -111,7 +119,7 @@ public class AuthenticationService {
 		return baseUrl + redirectEndpoint;
 	}
 
-	@RequestMapping("/login")
+	@RequestMapping("/install")
 	//Redirection URL (required). //Shopify calls this: https://example.org/some/redirect/uri?code={authorization_code}&hmac=da9d83c171400a41f8db91a950508985&timestamp=1409617544&state={nonce}&shop={hostname}
 	public RedirectView auth(@RequestParam("code") String authorizationCode, @RequestParam("shop") String hostname, @RequestParam(value = "state", required = false) String state, HttpServletRequest request) {
 		log.info("Processing shop registration: Shop {}", hostname);

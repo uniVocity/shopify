@@ -8,12 +8,11 @@ import com.univocity.shopify.email.*;
 import com.univocity.shopify.exception.*;
 import com.univocity.shopify.model.db.*;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.http.*;
-import org.springframework.security.web.util.*;
 import org.springframework.util.*;
 import org.springframework.web.client.*;
 
@@ -394,14 +393,15 @@ public class App {
 		Map<String, String[]> params = request.getParameterMap();
 
 		Map<String, String[]> refererParams;
-		if (!("/".equals(request.getServletPath()) || "/config".equals(request.getServletPath()))) {
+		if (!("/".equals(request.getServletPath()) || "/preferences".equals(request.getServletPath()))) {
 			String referrer = request.getHeader("referer");
-			if (StringUtils.isBlank(referrer)) {
-				throw new ValidationException("Error processing request");
+			if (StringUtils.isNotBlank(referrer)) {
+				referrer = decode(referrer);
+				refererParams = getUrlParameters(referrer);
+			} else {
+//				throw new ValidationException("Error processing request");
+				refererParams = new HashMap<>();
 			}
-
-			referrer = decode(referrer);
-			refererParams = getUrlParameters(referrer);
 		} else {
 			refererParams = new HashMap<>();
 		}
@@ -455,7 +455,25 @@ public class App {
 		return true;
 	}
 
-	public String getApiKey(){
+	public String getApiKey() {
 		return config.getProperty("api.key");
+	}
+
+	public String getShopDomain(String shopName) {
+		if (isTestingLocally()) {
+			return "localhost:8787";
+		}
+
+		Shop shop = shops.getShop(shopName);
+		String domain = shop.getDomain();
+
+		if (StringUtils.isBlank(domain)) {
+			if (shopName.endsWith(".myshopify.com")) {
+				domain = shopName;
+			} else {
+				domain = shopName + ".myshopify.com";
+			}
+		}
+		return domain;
 	}
 }

@@ -37,22 +37,24 @@ public class ShopPreferencesFormController {
 	@Autowired
 	SystemMailSender systemMailSender;
 
+	static final String PREFERENCES_VIEW_ACTION = "preferences view";
+
 	@CrossOrigin(origins = "*", methods = GET)
 	@RequestMapping(value = "/")
 	@ResponseBody
 	public RedirectView productLicenseSettings(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		RedirectView redirectView = new RedirectView();
 
-		redirectView.setUrl(app.getEndpoint(shopName, "/config"));
+		redirectView.setUrl(app.getEndpoint(shopName, "/preferences"));
 
 		return redirectView;
 	}
 
 	@CrossOrigin(origins = "*", methods = GET)
-	@RequestMapping(value = "/config", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@RequestMapping(value = "/preferences", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
 	@ResponseBody
 	public String productConfig(@RequestParam("shop") String shopName, HttpServletRequest request) {
-		return modifySettings(app, "preferences view", request, params -> showPreferences(request, params));
+		return modifySettings(app, PREFERENCES_VIEW_ACTION, request, params -> showPreferences(request, params));
 	}
 
 	private String showPreferences(HttpServletRequest request, Map<String, String[]> params) {
