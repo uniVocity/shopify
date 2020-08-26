@@ -159,6 +159,7 @@ class DefaultEmailTemplates {
 				"Your order has been received and is waiting for payment of {{ " + ORDER_AMOUNT + " }} {{ " + TOKEN_SYMBOL + " }} to the following address:\r\n" +
 				"\r\n" +
 				" * {{ " + PAYMENT_ADDRESS + " }}\r\n" +
+				"\r\n" +
 				"Or simply scan this QR code: {{ " + QRCODE + " }}\r\n" +
 				"\r\n" +
 				"The purchase price is guaranteed until until: {{ " + EXPIRATION_DATE + ", HH:mm mmm dd, yyyy }}.\r\n." +

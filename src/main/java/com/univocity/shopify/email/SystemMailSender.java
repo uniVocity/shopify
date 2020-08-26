@@ -1,7 +1,6 @@
 package com.univocity.shopify.email;
 
 
-import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.utils.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
