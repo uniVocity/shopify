@@ -6,6 +6,7 @@ import com.univocity.shopify.exception.*;
 import org.apache.commons.collections4.*;
 import org.apache.commons.io.*;
 import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.math.*;
 import org.springframework.core.io.*;
 import org.springframework.http.*;
 import org.springframework.security.crypto.codec.*;
@@ -13,6 +14,7 @@ import org.springframework.security.crypto.codec.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.math.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.security.*;
@@ -2197,7 +2199,60 @@ public class Utils {
 		return url;
 	}
 
+	public static void setBigDecimalIfNotNull(HttpServletRequest request, String header, Consumer<BigDecimal> callback) {
+		String str = request.getParameter(header);
+		if(str != null){
+			BigDecimal value = NumberUtils.createBigDecimal(str);
+			callback.accept(value);
+		}
+	}
 
+	public static void setBigDecimal(HttpServletRequest request, String header, Consumer<BigDecimal> callback) {
+		BigDecimal value = NumberUtils.createBigDecimal(request.getParameter(header));
+		callback.accept(value);
+	}
+
+	public static Integer toInteger(String value, Integer fallback) {
+		try {
+			return Integer.valueOf(value);
+		} catch (Exception e) {
+			return fallback;
+		}
+	}
+
+	public static void setInteger(HttpServletRequest request, String header, Consumer<Integer> callback) {
+		Integer value = toInteger(request.getParameter(header), null);
+		callback.accept(value);
+	}
+
+	public static void setString(HttpServletRequest request, String header, Consumer<String> callback) {
+		String value = request.getParameter(header);
+		if (value != null) {
+			value = value.trim();
+		}
+		callback.accept(value);
+	}
+
+	public static void setBooleanIfNotNull(HttpServletRequest request, String header, Consumer<Boolean> callback) {
+		String value = request.getParameter(header);
+		if(value != null) {
+			if("on".equals(value)){
+				callback.accept(true);
+			} else {
+				callback.accept(Boolean.valueOf(value));
+			}
+		}
+	}
+
+	public static void setBoolean(HttpServletRequest request, String header, Consumer<Boolean> callback) {
+		String value = request.getParameter(header);
+		if("on".equals(value)){
+			callback.accept(true);
+		} else {
+			callback.accept(Boolean.valueOf(value));
+		}
+
+	}
 }
 
 

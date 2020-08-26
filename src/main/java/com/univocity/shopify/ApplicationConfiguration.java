@@ -109,6 +109,11 @@ public class ApplicationConfiguration {
 	}
 
 	@Bean
+	EmailTemplateDao emailTemplateDaoDao() {
+		return new EmailTemplateDao();
+	}
+
+	@Bean
 	EmailQueueDao emailQueueDao() {
 		return new EmailQueueDao();
 	}

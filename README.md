@@ -23,6 +23,10 @@ for WordPress, Magento, etc.
 Source code and documentation will be available here on this GitHub repository,
 and the work has [already begun](https://github.com/uniVocity/shopify/commits/master)!
 
+## Progress
+
+ - 
+
 ## Delegate to the **SHOP** pool to help expand the cardano ecosystem!
 
 We want to offer everything for free to help with the adoption of Cardano as 

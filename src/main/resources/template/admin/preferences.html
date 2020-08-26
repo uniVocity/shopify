@@ -1,0 +1,386 @@
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="https://{SHOP}/{PROXY}/layout/app.css"/>
+	<link rel="stylesheet" type="text/css" href="https://{SHOP}/{PROXY}/layout/admin.css"/>
+	<script src="https://{SHOP}/{PROXY}/layout/app.js" type="text/javascript"></script>
+
+	<script>
+		function updateMailServerFields() {
+			var checked = document.getElementById('use_own_mail_server').checked;
+
+			document.getElementById('smtp_sender').readOnly = !checked;
+			document.getElementById('smtp_host').readOnly = !checked;
+			document.getElementById('smtp_port').readOnly = !checked;
+			document.getElementById('smtp_user').readOnly = !checked;
+			document.getElementById('smtp_password').readOnly = !checked;
+			document.getElementById('smtp_tls_ssl').disabled = !checked;
+
+			if (checked) {
+				switchClass(document.getElementById('mail_server_notice'), 'hide');
+			} else {
+				switchClass(document.getElementById('mail_server_notice'), null, 'hide');
+			}
+		}
+
+		function updateTlsSslValue() {
+			document.getElementById('smtp_tls_ssl_value').value = document.getElementById('smtp_tls_ssl').checked;
+		}
+
+		function addField(fieldName) {
+			if (editor) {
+				insertAtCursor(editor, '{{ ' + fieldName + ' }}');
+			}
+		}
+
+		function updateFields(fieldList) {
+			generateClickableFields('mandatory_fields', fieldList + '_mandatory_fields');
+			generateClickableFields('fields', fieldList + '_fields');
+		}
+
+		function generateClickableFields(target, fieldList) {
+			var list = document.getElementById(fieldList).value.split(',');
+			var clickableFields = document.getElementById(target);
+
+			removeChildren(clickableFields);
+
+			for (var i = 0; i < list.length; i++) {
+				var field = list[i];
+				var a = document.createElement('a');
+
+				a.setAttribute('class', 'button tiny')
+				a.setAttribute('onclick', 'addField(\'' + field + '\'); return false;');
+				a.appendChild(document.createTextNode(field));
+
+				clickableFields.appendChild(a);
+			}
+		}
+
+		function validateEmailList(field) {
+			var emails = field.value.split(',');
+
+			for (var i = 0; i < emails.length; i++) {
+				var email = emails[i].trim();
+				if (!isEmailValid(email)) {
+					field.setCustomValidity("Invalid e-mail address.");
+					return;
+				}
+			}
+			field.setCustomValidity("");
+		}
+
+		function validateTemplates() {
+			saveCurrentTabValues();
+			var tabs = document.getElementsByClassName("tab");
+			var valid = true;
+			for (var i = 0; i < tabs.length; i++) {
+				var tab = tabs[i];
+				if (!validateTemplate(tab.id)) {
+					valid = false;
+				}
+			}
+
+
+			if (!valid) {
+				switchClass(document.getElementById("template_editor"), "invalid", null);
+			} else {
+				switchClass(document.getElementById("template_editor"), null, "invalid");
+			}
+
+			return valid;
+		}
+
+		function validateTemplate(id) {
+			var tabButton = document.getElementById(id);
+
+			var valid = validateEmailTemplate(id);
+			if (!valid) {
+				switchClass(tabButton, "disable", null);
+			} else {
+				switchClass(tabButton, null, "disable");
+			}
+			return valid;
+		}
+
+		function validateEmailTemplate(id) {
+			var mandatoryFields = document.getElementById(id + '_mandatory_fields').value.split(',');
+			var title = document.getElementById(id + '_1').value;
+			var body = document.getElementById(id + '_2').value;
+
+			for (var i = 0; i < mandatoryFields.length; i++) {
+				var field = '{{ ' + mandatoryFields[i] + ' }}';
+
+				if (body.indexOf(field) < 0) {
+					field = '{{ ' + mandatoryFields[i] + ',';
+					if (body.indexOf(field) < 0) {
+						return false;
+					}
+
+				}
+			}
+
+			if (title.trim().length == 0) {
+				return false;
+			}
+
+			return true;
+		}
+
+		function saveEmailSettings(source) {
+			if (hasErrors(document.getElementById("prefs")) || !validateTemplates()) {
+				showPopup("save_msg", "Please fix the highlighted errors before proceeding", 1500);
+				return;
+			}
+		}
+
+		function save(source){
+			saveCurrentTabValues();
+			saveEmailSettings(this);
+			saveForm(source, 'prefs', 'https://{SHOP}/{PROXY}/preferences/')
+		}
+
+		function sendTemplateTestEmail(source) {
+			saveCurrentTabValues();
+			var selectedTab = getSelectedTab();
+			if (selectedTab && validateTemplate(selectedTab.id)) {
+				document.getElementById("sample_spinner").style.display = "block";
+				try {
+					disableClick(source);
+					var id = selectedTab.id;
+					var data = 'template=' + id + '&title=' + encodeURIComponent(document.getElementsByName(id + '_title')[0].value) + '&body=' + encodeURIComponent(document.getElementsByName(id + '_body')[0].value);
+
+					submitFormAjax(source, "https://{SHOP}/{PROXY}/preferences/mail/test/template", data, function (response) {
+						if (response.error) {
+							showPopup("sample_msg", response.message);
+						} else if (response.message) {
+							showPopup("sample_msg", response.message, 1500);
+						} else {
+							showPopup("sample_msg", "Internal server error", 1500);
+						}
+					}, function () {
+						enableClick(source);
+						document.getElementById("sample_spinner").style.display = "none";
+					});
+				} catch (err) {
+					showPopup("sample_msg", err, 1500);
+					enableClick(source);
+					document.getElementById("sample_spinner").style.display = "none";
+				}
+			}
+		}
+
+
+		function testEmailServer(source) {
+			if (hasErrors(document.getElementById("mail_server"))) {
+				showPopup("test_msg", "Please fix the highlighted errors before proceeding", 1500);
+				return;
+			}
+
+			document.getElementById("test_spinner").style.display = "block";
+			try {
+				disableClick(source);
+				var data = createRequestString(document.getElementById("mail_server"));
+
+				submitFormAjax(source, "https://{SHOP}/{PROXY}/preferences/mail/test", data, function (response) {
+					if (response.error) {
+						showPopup("test_msg", response.message);
+					} else if (response.message) {
+						showPopup("test_msg", response.message, 1500);
+					} else {
+						showPopup("test_msg", "Internal server error", 1500);
+					}
+				}, function () {
+					enableClick(source);
+					document.getElementById("test_spinner").style.display = "none";
+				});
+			} catch (err) {
+				showPopup("test_msg", err, 1500);
+				enableClick(source);
+				document.getElementById("test_spinner").style.display = "none";
+			}
+		}
+
+
+		var editor = null;
+
+	</script>
+</head>
+<body>
+<div>
+	{TABS}
+
+	<section class="section">
+		<div class="section-description">
+			<h1>General settings</h1>
+			<div class="title-description">
+				<p>Configure the settings to be used in your shop.</p>
+			</div>
+		</div>
+	</section>
+
+	<form id="prefs" method="post">
+		<section class="section">
+			<div class="section-description">
+				<h1>E-mail preferences</h1>
+				<div class="title-description">
+					<p>Configure e-mail addresses, templates and servers to communicate with your users.</p>
+				</div>
+			</div>
+		</section>
+
+		<section class="section no-border">
+			<div class="section-description">
+				<h2>E-mail addresses</h2>
+				<div class="title-description">
+					<p>E-mail addresses for sending notifications to users or administrators.</p>
+				</div>
+			</div>
+
+			<div class="section-content">
+				<div class="card">
+					<div class="stack">
+						<div>
+							<label class="label" for="reply_to">Reply-to address</label>
+							<input name="reply_to" id="reply_to" value="{REPLY_TO}" class="input" required onblur="validateEmail(this);">
+							<p class="description">A "reply-to" email address users can reply to if they wish to contact you.
+							</p>
+						</div>
+						<div>
+							<label class="label" for="notification_list">System notification list</label>
+							<input name="notification_list" id="notification_list" value="{NOTIFICATION_LIST}" class="input" required onblur="validateEmailList(this);">
+							<p class="description">A list of email addresses to receive system notifications for administration purposes</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section no-border">
+			<div class="section-description">
+				<h2>E-mail templates</h2>
+				<div class="title-description">
+					<p>All e-mails sent to your users are generated from the templates available here.</p>
+					<h4>Click on the fields below to add them to your template:</h4>
+					<p>Mandatory: <span id="mandatory_fields"></span></p>
+					<p>Available: <span id="fields"></span></p>
+				</div>
+			</div>
+
+			<div class="section-content">
+				<div class="card">
+					<div class="stack">
+						<div>
+							<label class="label" for="tab_component_2">E-mail templates</label>
+
+							<div id="template_editor">
+								<div class="tab-bar black">
+									{EMAIL_TEMPLATE_TABS}
+								</div>
+
+								<input id="tab_component_1" class="input code" onblur="editor=this;">
+								<textarea id="tab_component_2" rows="12" onblur="editor=this;validateTemplates()"></textarea>
+							</div>
+
+							<p class="description">Dates can be formatted using patterns formed by <strong>d</strong>, <strong>m</strong> and <strong>y</strong>. Each letter represents a digit of the day, month or year. If the month is 12,
+								<strong>mmm</strong> prints "Dec" while <strong>mmmm</strong> produces "December".
+							</p>
+							<p class="description">Lines containing fields with no values are automatically removed.</p>
+
+							<div class="card-actions">
+								<a id="sample_button" class="button popup" onclick="sendTemplateTestEmail(this); return false;">Send template test e-mail
+									<span class="popuptext" id="sample_msg" onclick="hide(event, this); return false;"></span>
+								</a>
+								<div id="sample_spinner" class="loader" style="display: none"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</section>
+
+		<section class="section no-border">
+			<div class="section-description">
+				<h2>Use your own mail server</h2>
+				<div class="title-description">
+					<p>Use our e-mail server or provide your own SMTP server details to send notifications to your customers.</p>
+					<br/>
+					<p><strong>IMPORTANT: </strong> We go to great lengths to ensure your credentials are stored securely but you have to do your part too.</p>
+					<br/>
+					<p>Please use an e-mail server that's isolated from your other servers and accounts.
+						Business gmail accounts under your domain can be used but are limited to 2000 e-mails per day.</p>
+				</div>
+			</div>
+			<div class="section-content">
+				<div class="card">
+					<div id="mail_server" class="stack">
+						<div>
+							<input name="use_own_mail_server" id="use_own_mail_server" value="true" type="checkbox" onclick="updateMailServerFields();" {USE_OWN_MAIL_SERVER_CHECKED}>
+							<label class="label" for="use_own_mail_server" style="display: inline;">Use my own e-mail server</label>
+							<label class="description" id="mail_server_notice">(otherwise e-mails will be sent from <strong>license@univocity.net)</strong></label>
+						</div>
+						<div>
+							<label class="label" for="smtp_host">SMTP host</label>
+							<input name="smtp_host" id="smtp_host" value="{SMTP_HOST}" class="input" required pattern=".*\S+.*" title="Required">
+							<p class="description">Your SMTP server address, e.g.
+								<emp>smtp.gmail.com</emp>
+							</p>
+						</div>
+						<div>
+							<label class="label" for="smtp_port">SMTP port</label>
+							<input name="smtp_port" id="smtp_port" value="{SMTP_PORT}" class="input" min="0" max="65535" step="any" type="number">
+							<p class="description">The server SMTP port, e.g.
+								<emp>465</emp>
+							</p>
+						</div>
+						<div>
+							<label class="label" for="smtp_user">SMTP user name</label>
+							<input name="smtp_user" id="smtp_user" value="{SMTP_USER}" class="input" required pattern=".*\S+.*" title="Required">
+							<p class="description">The SMTP account user, e.g.
+								<emp>you@gmail.com</emp>
+							</p>
+						</div>
+						<div>
+							<label class="label" for="smtp_password">SMTP password</label>
+							<input name="smtp_password" id="smtp_password" value="{SMTP_PASSWORD}" class="input" type="password" required title="Required">
+							<p class="description">The password for the SMTP user provided above</p>
+						</div>
+						<div>
+							<input name="smtp_tls_ssl" id="smtp_tls_ssl" value="true" type="checkbox" style="margin-top: 10px;" onclick="updateTlsSslValue();" {SMTP_TLS_SSL_CHECKED}>
+							<label class="label" for="smtp_tls_ssl" style="display: inline;">TLS/SSL required</label>
+							<input id="smtp_tls_ssl_value" name="smtp_tls_ssl" type="hidden" value="{SMTP_TLS_SSL}"/>
+						</div>
+
+						<div>
+							<label class="label" for="smtp_sender">Sender address</label>
+							<input name="smtp_sender" id="smtp_sender" value="{SMTP_SENDER}" class="input" onblur="validateEmail(this);">
+							<p class="description">The "from" email address to use when sending e-mails, e.g.
+								<emp>contact@yourcompany.com</emp>
+							</p>
+						</div>
+						<div class="card-actions">
+							<a id="test_button" class="button popup" onclick="testEmailServer(this); return false;">Send test e-mail
+								<span class="popuptext" id="test_msg" onclick="hide(event, this); return false;"></span>
+							</a>
+							<div id="test_spinner" class="loader" style="display: none"></div>
+						</div>
+
+					</div>
+				</div>
+			</div>
+		</section>
+	</form>
+
+	<div class="page-actions">
+		<a class="button" onclick="window.history.back();">Back</a>
+		<a id="save_button" class="button popup" onclick="save(this); return false;">Save
+			<span class="popuptext" id="save_msg" onclick="hide(event, this); return false;"></span>
+		</a>
+		<div id="save_spinner" class="loader" style="display: none"></div>
+	</div>
+</div>
+<script>
+	updateMailServerFields();
+	displayTab();
+	updateFields(getSelectedTab().id);
+</script>
+</body>
+</html>

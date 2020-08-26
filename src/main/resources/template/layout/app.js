@@ -264,6 +264,63 @@ function switchClass(element, clazz, toRemove) {
 	}
 }
 
+function getSelectedTab() {
+	var tabs = document.getElementsByClassName("tab");
+	for (var i = 0; i < tabs.length; i++) {
+		if (tabs[i].className.indexOf(" tab-selected") >= 0) {
+			return tabs[i];
+		}
+	}
+	return null;
+}
+
+function displayTab(event, data, tab) {
+
+	var tab = tab ? tab : "tab_component";
+
+	var current = getSelectedTab();
+	if (current) {
+		copyTabValues(tab, current.id);
+	}
+
+	var tabs = document.getElementsByClassName("tab");
+	for (var i = 0; i < tabs.length; i++) {
+		tabs[i].className = tabs[i].className.replace(" tab-selected", "");
+	}
+	if (event) {
+		event.currentTarget.className += " tab-selected";
+	} else {
+		data = tabs[0].id;
+		tabs[0].className += " tab-selected";
+	}
+
+	copyTabValues(data, tab);
+}
+
+function copyTabValues(from, to) {
+	if (from) {
+		var i = 1;
+		do {
+			var target = document.getElementById(to + "_" + i);
+			if (target) {
+				target.value = document.getElementById(from + "_" + i).value;
+				i++;
+			}
+		} while (target);
+	}
+}
+
+function saveCurrentTabValues(tabComponent) {
+	var tab = tabComponent ? tabComponent : "tab_component";
+
+	var currentTab = getSelectedTab();
+
+	if (currentTab) {
+		copyTabValues(tab, currentTab.id);
+	}
+}
+
+
 function insertAtCursor(field, value) {
 	if (document.selection) { //IE
 		field.focus();

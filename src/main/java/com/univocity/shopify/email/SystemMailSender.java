@@ -1,6 +1,7 @@
 package com.univocity.shopify.email;
 
 
+import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.utils.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
@@ -21,6 +22,9 @@ public class SystemMailSender extends AbstractMailSender {
 	public MailSenderConfig getConfig() {
 		return config;
 	}
+
+	@Autowired
+	EmailQueue emailQueue;
 
 	public boolean sendEmail(String[] to, String title, String content) {
 		if (app.isLive()) {
@@ -51,5 +55,15 @@ public class SystemMailSender extends AbstractMailSender {
 
 		content = content + "\r\n\r\nServer error:\r\n" + exception.getMessage();
 		return sendEmail(Utils.join(getAdminMailList(), owners), App.getServerName() + " - " + title, content);
+	}
+
+	public boolean sendEmailViaSmtp(Email email) {
+		try {
+			emailQueue.sendEmail(email);
+			return true;
+		} catch (Exception e) {
+			log.error("Error sending e-mail. Shop: " + email.getShopId(), e);
+		}
+		return false;
 	}
 }

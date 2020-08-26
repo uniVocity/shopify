@@ -85,7 +85,7 @@ public class EmailQueue {
 		return emailQueueDao.addToQueue(email);
 	}
 
-	private void sendEmail(Email email) throws MailException {
+	public void sendEmail(Email email) throws MailException {
 		boolean usingSystemServer = false;
 		final JavaMailSender mailSender;
 		long shopId = email.getShopId();

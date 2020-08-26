@@ -75,8 +75,8 @@ public class AuthenticationService {
 		if (credentials.isShopInstalled(shopName)) {
 			Shop shop = shops.getShop(shopName);
 			if (shop.isActive()) {
-				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/cardano'", shopName);
-				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/cardano");
+				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/preferences'", shopName);
+				return new RedirectView(app.getEndpoint(shop.getShopName(), "/preferences"));
 			} else {
 				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/blockchain/activation' for installation", shopName);
 				return new RedirectView(app.getEndpoint(shop.getShopName(), "/blockchain/activation"));
@@ -84,7 +84,7 @@ public class AuthenticationService {
 		}
 
 		String parameters = Utils.printRequestParameters(request);
-		RedirectView out = new RedirectView("/install_page"+parameters);
+		RedirectView out = new RedirectView("/install_page" + parameters);
 		return out;
 	}
 

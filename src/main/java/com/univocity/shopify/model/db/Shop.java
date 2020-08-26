@@ -9,6 +9,7 @@ import org.slf4j.*;
 import java.sql.*;
 import java.util.*;
 
+import static com.univocity.shopify.utils.Utils.*;
 import static com.univocity.shopify.utils.database.Converter.*;
 
 public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparable<Shop> {
@@ -200,6 +201,9 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public char[] getSmtpPassword() {
+		if(encodedSmtpPassword == null){
+			return EMPTY_CHAR_ARRAY;
+		}
 		return encodedSmtpPassword.toCharArray();
 	}
 
