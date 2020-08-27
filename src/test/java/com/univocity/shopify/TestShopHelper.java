@@ -60,12 +60,12 @@ public class TestShopHelper {
 	}
 
 
-	public Product getProductDetails(Long shopifyId, String name, String variantDescription) {
-		Product product = products.getProduct(name, id);
+	public Product getProductDetails(Long productShopifyId, String productName, Long variantShopifyId, String variantDescription) {
+		Product product = products.getProduct(productName, id);
 		if (product == null) {
 			product = new Product();
-			product.setName(name);
-			product.setShopifyId(shopifyId);
+			product.setName(productName);
+			product.setShopifyId(productShopifyId);
 			product.setShopId(id);
 			products.insert(product);
 		}
@@ -74,6 +74,7 @@ public class TestShopHelper {
 			Variant variant = variants.getVariant(variantDescription, product.getId(), id);
 			if (variant == null) {
 				variant = new Variant();
+				variant.setShopifyId(variantShopifyId);
 				variant.setDescription(variantDescription);
 				variant.setProduct(product);
 				variant.setShopId(id);

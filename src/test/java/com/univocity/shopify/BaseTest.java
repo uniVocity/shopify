@@ -50,6 +50,12 @@ public class BaseTest extends AbstractTestNGSpringContextTests {
 
 	@BeforeClass(dependsOnMethods = "springTestContextPrepareTestInstance")
 	public void setUp() throws Exception {
+		shop1.getProductDetails(5664741327002L, "Sock", 35919672869019L, "black");
+		shop1.getProductDetails(5664741327002L, "Sock", 35919672869018L, "white");
+
+		shop2.getProductDetails(5664741327002L, "Sock", 35919672869019L, "black");
+		shop2.getProductDetails(5664741327002L, "Sock", 35919672869018L, "white");
+
 		//process order files
 		shop1.processOrder("order_created.json");
 		shop2.processOrder("order_created.json");
