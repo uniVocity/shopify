@@ -32,6 +32,12 @@ public class ShopifyCustomer {
 	@JsonSerialize(using = ShopifyDateSerializer.class)
 	public ZonedDateTime updatedAt;
 
+	@JsonProperty("accepts_marketing")
+	public boolean acceptsMarketing;
+
+	@JsonProperty
+	public String phone;
+
 
 	public ShopifyCustomer() {
 
@@ -44,6 +50,8 @@ public class ShopifyCustomer {
 				", email='" + email + '\'' +
 				", firstName='" + firstName + '\'' +
 				", lastName='" + lastName + '\'' +
+				", phone='" + phone + '\'' +
+				", acceptsMarketing=" + acceptsMarketing +
 				", createdAt=" + createdAt +
 				", updatedAt=" + updatedAt +
 				'}';

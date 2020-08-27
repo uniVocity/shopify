@@ -15,6 +15,7 @@
 		<classes>
 			<class name="com.univocity.shopify.BaseTest"/>
 			<class name="com.univocity.shopify.dao.OrdersDaoTest"/>
+			<class name="com.univocity.shopify.dao.CustomerDaoTest"/>
 		</classes>
 	</test>
 </suite>

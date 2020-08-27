@@ -16,6 +16,8 @@ public class Customer extends ShopifyEntity<Customer> {
 	private String email;
 	private String firstName;
 	private String lastName;
+	private String phone;
+	private boolean acceptsMarketing;
 
 	public Customer() {
 	}
@@ -24,6 +26,8 @@ public class Customer extends ShopifyEntity<Customer> {
 		this.email = shopifyCustomer.email;
 		this.firstName = shopifyCustomer.firstName;
 		this.lastName = shopifyCustomer.lastName;
+		this.phone = shopifyCustomer.phone;
+		this.acceptsMarketing = shopifyCustomer.acceptsMarketing;
 		this.setCreatedAt(toTimestamp(shopifyCustomer.createdAt));
 		this.setUpdatedAt(toTimestamp(shopifyCustomer.updatedAt));
 		this.setShopId(shopId);
@@ -35,6 +39,8 @@ public class Customer extends ShopifyEntity<Customer> {
 		map.put("email", getEmail());
 		map.put("first_name", getFirstName());
 		map.put("last_name", getLastName());
+		map.put("accepts_marketing", getAcceptsMarketing());
+		map.put("phone", getPhone());
 
 		if (getCreatedAt() != null) {
 			map.put("created_at", getCreatedAt());
@@ -53,6 +59,8 @@ public class Customer extends ShopifyEntity<Customer> {
 		setFirstName(rs.getString("first_name"));
 		setLastName(rs.getString("last_name"));
 		setEmail(rs.getString("email"));
+		setAcceptsMarketing(readBoolean(rs, "accepts_marketing"));
+		setPhone(rs.getString("phone"));
 		setCreatedAt(rs.getTimestamp("created_at"));
 		setUpdatedAt(rs.getTimestamp("updated_at"));
 	}
@@ -85,4 +93,21 @@ public class Customer extends ShopifyEntity<Customer> {
 	public String getName() {
 		return Utils.getName(getFirstName(), getLastName(), "customer");
 	}
+
+	public boolean getAcceptsMarketing() {
+		return acceptsMarketing;
+	}
+
+	public void setAcceptsMarketing(Boolean acceptsMarketing) {
+		this.acceptsMarketing = acceptsMarketing == null ? false : acceptsMarketing;
+	}
+
+	public String getPhone() {
+		return phone;
+	}
+
+	public void setPhone(String phone) {
+		this.phone = phone;
+	}
+
 }
