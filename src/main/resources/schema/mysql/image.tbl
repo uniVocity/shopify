@@ -1,0 +1,19 @@
+CREATE TABLE image (
+
+	shop_id BIGINT NOT NULL,
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+	shopify_id BIGINT,
+    url VARCHAR(1024) NOT NULL,
+    width INTEGER,
+    height INTEGER,
+
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+
+	CONSTRAINT image_pk PRIMARY KEY (id),
+	CONSTRAINT image_pk_uk UNIQUE (shop_id, id),
+	CONSTRAINT image_shopify_uk UNIQUE (shop_id, shopify_id),
+    CONSTRAINT image_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id)
+);

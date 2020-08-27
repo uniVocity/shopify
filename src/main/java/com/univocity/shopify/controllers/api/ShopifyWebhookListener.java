@@ -230,7 +230,15 @@ public class ShopifyWebhookListener {
 		}
 	}
 
-	@RequestMapping(value = "/purchased", method = RequestMethod.POST)
+	@RequestMapping(value = "/order/created", method = RequestMethod.POST)
+	public void orderPlaced(@RequestBody String json, HttpServletRequest request) {
+		if (isRequestValid("orderCreated", json, request)) {
+			String shopName = Utils.getShopName(request);
+			ordersDao.processOrder(json, shopName);
+		}
+	}
+
+	@RequestMapping(value = "/order/fulfilled", method = RequestMethod.POST)
 	public void orderFulfilled(@RequestBody String json, HttpServletRequest request) {
 		if (isRequestValid("orderFulfilled", json, request)) {
 			String shopName = Utils.getShopName(request);

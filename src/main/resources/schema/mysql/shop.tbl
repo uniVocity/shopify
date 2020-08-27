@@ -32,6 +32,7 @@ CREATE TABLE shop (
     deleted_at DATETIME,
     uninstall_info TEXT,
     active BIT NOT NULL DEFAULT 0,
+    webhooks MEDIUMTEXT,
 
     CONSTRAINT shop_pk PRIMARY KEY (id),
     CONSTRAINT shop_uk UNIQUE (shop_name, deleted_at)

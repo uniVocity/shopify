@@ -1,0 +1,21 @@
+CREATE TABLE product (
+
+	shop_id BIGINT NOT NULL,
+    id BIGINT NOT NULL AUTO_INCREMENT,
+
+	shopify_id BIGINT,
+    name VARCHAR(255) NOT NULL,
+
+    created_at DATETIME,
+    updated_at DATETIME,
+    deleted_at DATETIME,
+    disabled_at DATETIME,
+
+	image_id BIGINT,
+
+	CONSTRAINT product_pk PRIMARY KEY (id),
+	CONSTRAINT product_pk_uk UNIQUE (shop_id, id),
+	CONSTRAINT product_shopify_uk UNIQUE (shop_id, shopify_id),
+    CONSTRAINT product_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id),
+    CONSTRAINT product_image_fk FOREIGN KEY (shop_id, image_id) REFERENCES image(shop_id, id)
+);

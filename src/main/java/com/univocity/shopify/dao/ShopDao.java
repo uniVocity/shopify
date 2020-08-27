@@ -434,8 +434,9 @@ public class ShopDao extends BaseDao {
 
 	public void deactivateShop(Shop shop) {
 		try {
-			db.update("UPDATE shop SET active = 0 WHERE id = " + shop.getId());
+			db.update("UPDATE shop SET active = 0, webhooks = NULL WHERE id = " + shop.getId());
 			shop.setActive(false);
+			shop.setWebhooks(null);
 		} finally {
 			systemMailSender.sendEmail("Disabling shop " + shop.getId(), "Please review");
 		}

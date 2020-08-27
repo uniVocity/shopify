@@ -5,6 +5,7 @@ import com.univocity.shopify.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
 import com.univocity.shopify.exception.*;
+import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.*;
 import org.apache.commons.collections4.*;
@@ -15,6 +16,8 @@ import org.springframework.context.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.*;
+
+import java.util.*;
 
 import static com.univocity.shopify.utils.Utils.*;
 
@@ -41,16 +44,31 @@ public class ShopifyApiService {
 
 	@RequestMapping("/webhooks/register")
 	public void registerWebHooks(@RequestParam("shop") String shopName/*, @RequestParam("topic") String topic, HttpServletRequest request*/) {
-		registerWebHook(shopName, "orders/fulfilled", "/purchased");
-		registerWebHook(shopName, "app/uninstalled", "/uninstalled");
-		registerWebHook(shopName, "products/update", "/product/update");
+		Shop shop = shops.getShop(shopName);
+		updateShopWebooks(shop);
 	}
 
-	private void registerWebHook(String shopName, String topic, String localEndpoint) {
+
+	public void updateShopWebooks(Shop shop){
+		Set<String> webhooks = new TreeSet<>();
+		registerWebHook(webhooks, shop, "orders/create", "/order/created");
+		registerWebHook(webhooks, shop, "orders/fulfilled", "/order/fulfilled");
+		registerWebHook(webhooks, shop, "app/uninstalled", "/uninstalled");
+		registerWebHook(webhooks, shop, "products/update", "/product/update");
+		shop.addWebhooks(webhooks);
+	}
+
+	private void registerWebHook(Set<String> webhooks, Shop shop, String topic, String localEndpoint) {
+		if(shop.getWebhookSet().contains(topic)){
+			return;
+		}
+
 		WebHookRegistration registration = new WebHookRegistration();
 		registration.address = config.getProperty("public.address") + localEndpoint;
 		registration.topic = topic;
 		registration.format = "json";
+
+		String shopName = shop.getShopName();
 
 		try {
 			Webhook response = app.postFor(Webhook.class, new Webhook(registration), shopName, "/admin/webhooks.json");
@@ -59,12 +77,14 @@ public class ShopifyApiService {
 			}
 			if (response.webhook != null && response.webhook.id != null) {
 				log.info("Successfully registered webhook on topic '{}' of store '{}'", topic, shopName);
+				webhooks.add(topic);
 			} else {
 				app.notifyError("Failed to register webhook on topic '{}' of store '{}'", topic, shopName);
 			}
 		} catch (ShopifyErrorException e) {
 			if (e.getBody() != null && e.getBody().toLowerCase().contains("for this topic has already been taken")) {
 				log.info("Duplicate webhook registration on topic {} of store {}. Registration {}. Ignoring as it is registered.", topic, shopName, registration);
+				webhooks.add(topic);
 				return;
 			} else {
 				app.notifyError(e, "Error registering for webhook on topic {} for store {}. Registration: {}", topic, shopName, registration);
