@@ -1,0 +1,20 @@
+CREATE TABLE customer (
+
+	shop_id BIGINT NOT NULL,
+	id BIGINT NOT NULL AUTO_INCREMENT,
+
+	shopify_id BIGINT,
+	email VARCHAR(255),
+    first_name VARCHAR(255),
+    last_name VARCHAR(255),
+    phone VARCHAR(64),
+    accepts_marketing BIT,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    deleted_at TIMESTAMP,
+
+    CONSTRAINT customer_pk PRIMARY KEY (id),
+    CONSTRAINT customer_pk_uk UNIQUE (shop_id, id),
+    CONSTRAINT customer_shop_uk UNIQUE (shop_id, shopify_id),
+    CONSTRAINT customer_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id)
+);

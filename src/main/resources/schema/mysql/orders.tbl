@@ -1,0 +1,30 @@
+CREATE TABLE orders (
+
+	shop_id BIGINT NOT NULL,
+	id BIGINT NOT NULL AUTO_INCREMENT,
+
+	customer_id BIGINT NOT NULL,
+    shopify_id BIGINT,
+    shopify_order_number BIGINT,
+    email VARCHAR(255),
+    contact_email VARCHAR(255),
+    created_at DATETIME,
+    updated_at DATETIME,
+    closed_at DATETIME,
+    cancelled_at DATETIME,
+    deleted_at DATETIME,
+    status_url TEXT,
+
+	total_price_usd DECIMAL(19,4),
+	total_price_crypto DECIMAL(19,16),
+	payment_address TEXT,
+
+	token VARCHAR(255),
+    original_json MEDIUMTEXT,
+
+    CONSTRAINT orders_pk PRIMARY KEY (id),
+    CONSTRAINT orders_pk_uk UNIQUE (shop_id, id),
+    CONSTRAINT orders_shopify_uk UNIQUE (shop_id, shopify_id),
+    CONSTRAINT orders_customer_fk FOREIGN KEY (shop_id, customer_id) REFERENCES customer(shop_id, id),
+    CONSTRAINT orders_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id)
+);

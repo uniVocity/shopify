@@ -63,12 +63,7 @@ public class LineItemDao extends ShopifyEntityDao<LineItem> {
 
 		for (ShopifyLineItem shopifyLineItem : shopifyOrder.lineItems) {
 
-			Product product = products.getByShopifyId(shopId, shopifyLineItem.productId);
-			if (product == null) {
-				// TODO: get from shopify and and insert
-				log.debug("Skipping line item with product ID {} ({}). Unknown product", shopifyLineItem.productId, shopifyLineItem.name);
-				continue;
-			}
+			Product product = products.persist(shopifyLineItem, shopId);
 			if (product.isDisabled()) {
 				log.debug("Skipping line item with product ID {} ({}). Product disabled", shopifyLineItem.productId, shopifyLineItem.name);
 				continue;

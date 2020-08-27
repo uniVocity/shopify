@@ -19,12 +19,6 @@ public class Product extends ImageEntity<Product> {
 
 	}
 
-	private static final Set<String> columnsToIgnoreOnToString = new HashSet<>(Arrays.asList("public_key", "private_key"));
-
-	protected Set<String> getColumnsToIgnoreOnToString() {
-		return columnsToIgnoreOnToString;
-	}
-
 	@Override
 	protected void toMap(Map<String, Object> map) {
 		map.put("name", getName());
@@ -68,7 +62,6 @@ public class Product extends ImageEntity<Product> {
 	public Product(ShopifyLineItem lineItem) {
 		this.setShopifyId(lineItem.productId);
 		this.name = lineItem.title;
-		this.setDisabledAt(now());
 	}
 
 	public String getName() {

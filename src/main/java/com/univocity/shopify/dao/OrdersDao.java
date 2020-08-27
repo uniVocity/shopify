@@ -33,7 +33,7 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 
 
 	public OrdersDao() {
-		super("order", "order");
+		super("orders", "order");
 	}
 
 	@Override
@@ -82,21 +82,6 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 		}
 
 		final Long shopId = shops.getShopId(shopName);
-
-		boolean orderHasProducts = false;
-
-		for (Long productId : productsInOrder) {
-			Product product = products.getByShopifyId(shopId, productId);
-			if (product != null && product.isEnabled()) {
-				orderHasProducts = true;
-				break;
-			}
-		}
-
-		if (!orderHasProducts) {
-			log.debug("Received shopify order with no enabled products. Order ID '{}', shop '{}'", shopifyOrder.id, shopName);
-			return;
-		}
 
 		Order order = queryForOptionalEntity("SELECT * FROM orders WHERE shopify_id = ? AND shop_id = ? AND shopify_order_number = ? AND token = ?", shopifyOrder.id, shopId, shopifyOrder.orderNumber, shopifyOrder.token);
 		if (order == null) {

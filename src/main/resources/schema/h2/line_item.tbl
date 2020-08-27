@@ -1,0 +1,25 @@
+CREATE TABLE line_item (
+
+	shop_id BIGINT NOT NULL,
+	order_id BIGINT NOT NULL,
+	id BIGINT NOT NULL AUTO_INCREMENT,
+
+	quantity BIGINT NOT NULL,
+	shopify_id BIGINT,
+	title VARCHAR(1023),
+
+	product_id BIGINT NOT NULL,
+	variant_id BIGINT NOT NULL,
+
+	created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP(),
+    deleted_at TIMESTAMP,
+
+	CONSTRAINT line_item_pk PRIMARY KEY (id),
+	CONSTRAINT line_item_pk_uk UNIQUE (shop_id, order_id, id),
+	CONSTRAINT line_item_order_shopify_uk UNIQUE (shop_id, order_id, shopify_id),
+	CONSTRAINT line_item_order_fk FOREIGN KEY (shop_id, order_id) REFERENCES orders(shop_id, id),
+	CONSTRAINT line_item_shop_fk FOREIGN KEY (shop_id) REFERENCES shop(id),
+	CONSTRAINT line_item_product_fk FOREIGN KEY (shop_id, product_id) REFERENCES product(shop_id, id),
+	CONSTRAINT line_item_variant_fk FOREIGN KEY (shop_id, product_id, variant_id) REFERENCES variant(shop_id, product_id, id)
+)

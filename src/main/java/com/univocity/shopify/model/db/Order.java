@@ -6,6 +6,7 @@ import com.univocity.shopify.model.db.core.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.*;
 
+import java.math.*;
 import java.sql.*;
 import java.util.*;
 
@@ -24,13 +25,16 @@ public class Order extends ShopifyEntity<Order> {
 	private String token;
 	private String originalJson;
 
+	private BigDecimal totalPriceUsd;
+	private BigDecimal totalPriceCrypto;
+	private String paymentAddress;
+
 	private final List<LineItem> lineItems = new ArrayList<>();
 	private Customer customer;
 
 	public Order() {
 
 	}
-
 	@Override
 	protected void populateMap(Map<String, Object> map) {
 		map.put("shopify_order_number", getShopifyOrderNumber());
@@ -44,6 +48,10 @@ public class Order extends ShopifyEntity<Order> {
 		map.put("token", getToken());
 		map.put("original_json", getOriginalJson());
 		map.put("customer_id", getCustomerId());
+
+		map.put("total_price_usd", getTotalPriceUsd());
+		map.put("total_price_crypto", getTotalPriceCrypto());
+		map.put("payment_address", getPaymentAddress());
 	}
 
 	@Override
@@ -56,6 +64,10 @@ public class Order extends ShopifyEntity<Order> {
 		setClosedAt(rs.getTimestamp("closed_at"));
 		setCancelledAt(rs.getTimestamp("cancelled_at"));
 		setCustomerId(readLong(rs, "customer_id"));
+
+		setTotalPriceUsd(rs.getBigDecimal("total_price_usd"));
+		setTotalPriceCrypto(rs.getBigDecimal("total_price_crypto"));
+		setPaymentAddress(rs.getString("payment_address"));
 	}
 
 	public Order(Customer customer, ShopifyOrder order, Long shopId) {
@@ -75,6 +87,10 @@ public class Order extends ShopifyEntity<Order> {
 		this.token = order.token;
 		this.setShopId(shopId);
 		this.setShopifyId(order.id);
+		this.setTotalPriceUsd(order.totalPriceUsd);
+
+//		this.setTotalPriceCrypto(null);
+//		this.setPaymentAddress(null);
 	}
 
 	public Customer getCustomer() {
@@ -166,6 +182,30 @@ public class Order extends ShopifyEntity<Order> {
 
 	public Long getCustomerId() {
 		return customerId;
+	}
+
+	public BigDecimal getTotalPriceUsd() {
+		return totalPriceUsd;
+	}
+
+	public void setTotalPriceUsd(BigDecimal totalPriceUsd) {
+		this.totalPriceUsd = totalPriceUsd;
+	}
+
+	public BigDecimal getTotalPriceCrypto() {
+		return totalPriceCrypto;
+	}
+
+	public void setTotalPriceCrypto(BigDecimal totalPriceCrypto) {
+		this.totalPriceCrypto = totalPriceCrypto;
+	}
+
+	public String getPaymentAddress() {
+		return paymentAddress;
+	}
+
+	public void setPaymentAddress(String paymentAddress) {
+		this.paymentAddress = paymentAddress;
 	}
 
 	public void setCustomerId(Long customerId) {

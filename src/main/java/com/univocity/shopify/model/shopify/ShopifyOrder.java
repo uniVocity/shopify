@@ -40,6 +40,9 @@ public class ShopifyOrder {
 	@JsonProperty(value = "total_price")
 	public BigDecimal totalPrice;
 
+	@JsonProperty(value = "total_price_usd")
+	public BigDecimal totalPriceUsd;
+
 	@JsonProperty
 	public BigDecimal discount;
 
