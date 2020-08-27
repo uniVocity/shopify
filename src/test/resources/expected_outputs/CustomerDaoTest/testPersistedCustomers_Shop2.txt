@@ -1,0 +1,1 @@
+Customer{id=2; shop_id=2; shopify_id=3929512542362; accepts_marketing=false; email='jbax@univocity.com'; first_name='Jeronimo'; last_name='Backes'; phone=null}
