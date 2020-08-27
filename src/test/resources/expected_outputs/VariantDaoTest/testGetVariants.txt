@@ -1,2 +1,20 @@
-Variant{id=1; shop_id=1; shopify_id=35919672869019; description='black'; image_id=null; price=null; product_id=1; sku=null}
-Variant{id=2; shop_id=1; shopify_id=35919672869018; description='white'; image_id=null; price=null; product_id=1; sku=null}
+Variant{
+  id=1
+  shop_id=1
+  shopify_id=35919672869019
+  description='black'
+  image_id=null
+  price=null
+  product_id=1
+  sku=null
+}
+Variant{
+  id=2
+  shop_id=1
+  shopify_id=35919672869018
+  description='white'
+  image_id=null
+  price=null
+  product_id=1
+  sku=null
+}

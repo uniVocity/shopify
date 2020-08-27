@@ -17,6 +17,7 @@ import org.testng.annotations.*;
 public class BaseTest extends AbstractTestNGSpringContextTests {
 
 	protected final OutputTester outputTester = new OutputTester(getClass(), "expected_outputs/", "UTf-8");
+
 	@Autowired
 	public TestShopHelper shop1;
 

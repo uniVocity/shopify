@@ -1,1 +1,18 @@
-Order{id=1; shop_id=1; shopify_id=2654044848282; cancelled_at=null; closed_at=null; contact_email='jbax@univocity.com'; customer_id=1; email='jbax@univocity.com'; original_json=null; payment_address=null; shopify_order_number=1003; status_url='https://cardano-integration.myshopify.com/46256357530/orders/fa5832c63b399dde2cef3756b2560082/authenticate?key=ca4d5188e4f10e9f21f6d419b087f84a'; token='fa5832c63b399dde2cef3756b2560082'; total_price_crypto=null; total_price_usd=7.9900}
+Order{
+  id=1
+  shop_id=1
+  shopify_id=2654044848282
+  cancelled_at=null
+  closed_at=null
+  contact_email='jbax@univocity.com'
+  customer_id=1
+  email='jbax@univocity.com'
+  original_json=null
+  payment_address=null
+  shopify_order_number=1003
+  status=1
+  status_url='https://cardano-integration.myshopify.com/46256357530/orders/fa5832c63b399dde2cef3756b2560082/authenticate?key=ca4d5188e4f10e9f21f6d419b087f84a'
+  token='fa5832c63b399dde2cef3756b2560082'
+  total_price_crypto=null
+  total_price_usd=7.9900
+}

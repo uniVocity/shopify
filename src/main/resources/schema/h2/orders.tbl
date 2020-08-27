@@ -15,6 +15,7 @@ CREATE TABLE orders (
     deleted_at TIMESTAMP,
     status_url VARCHAR(2048),
 
+	status TINYINT,
 	total_price_usd DECIMAL(19,4),
 	total_price_crypto DECIMAL(19,16),
 	payment_address VARCHAR(2048),

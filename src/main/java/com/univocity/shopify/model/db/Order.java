@@ -1,7 +1,6 @@
 package com.univocity.shopify.model.db;
 
 
-
 import com.univocity.shopify.model.db.core.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.*;
@@ -25,6 +24,7 @@ public class Order extends ShopifyEntity<Order> {
 	private String token;
 	private String originalJson;
 
+	private FinancialStatus status;
 	private BigDecimal totalPriceUsd;
 	private BigDecimal totalPriceCrypto;
 	private String paymentAddress;
@@ -32,9 +32,11 @@ public class Order extends ShopifyEntity<Order> {
 	private final List<LineItem> lineItems = new ArrayList<>();
 	private Customer customer;
 
+
 	public Order() {
 
 	}
+
 	@Override
 	protected void populateMap(Map<String, Object> map) {
 		map.put("shopify_order_number", getShopifyOrderNumber());
@@ -52,6 +54,7 @@ public class Order extends ShopifyEntity<Order> {
 		map.put("total_price_usd", getTotalPriceUsd());
 		map.put("total_price_crypto", getTotalPriceCrypto());
 		map.put("payment_address", getPaymentAddress());
+		map.put("status", getStatusCode());
 	}
 
 	@Override
@@ -68,6 +71,7 @@ public class Order extends ShopifyEntity<Order> {
 		setTotalPriceUsd(rs.getBigDecimal("total_price_usd"));
 		setTotalPriceCrypto(rs.getBigDecimal("total_price_crypto"));
 		setPaymentAddress(rs.getString("payment_address"));
+		setStatus(FinancialStatus.fromCode(readInteger(rs, "status")));
 	}
 
 	public Order(Customer customer, ShopifyOrder order, Long shopId) {
@@ -88,7 +92,7 @@ public class Order extends ShopifyEntity<Order> {
 		this.setShopId(shopId);
 		this.setShopifyId(order.id);
 		this.setTotalPriceUsd(order.totalPriceUsd);
-
+		this.setStatus(order.financialStatus == null ? null : FinancialStatus.valueOf(order.financialStatus));
 //		this.setTotalPriceCrypto(null);
 //		this.setPaymentAddress(null);
 	}
@@ -212,5 +216,18 @@ public class Order extends ShopifyEntity<Order> {
 		this.customerId = customerId;
 		this.customer = idUpdated(customer, customerId);
 	}
+
+	public FinancialStatus getStatus() {
+		return status;
+	}
+
+	public int getStatusCode() {
+		return status == null ? 0 : status.code;
+	}
+
+	public void setStatus(FinancialStatus status) {
+		this.status = status;
+	}
+
 
 }

@@ -15,7 +15,7 @@
   "total_tax": "0.10",
   "taxes_included": false,
   "currency": "AUD",
-  "financial_status": "paid",
+  "financial_status": "pending",
   "confirmed": true,
   "total_discounts": "0.00",
   "total_line_items_price": "1.00",

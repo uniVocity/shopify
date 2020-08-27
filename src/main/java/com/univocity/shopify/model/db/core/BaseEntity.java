@@ -89,9 +89,7 @@ public abstract class BaseEntity<T extends BaseEntity> implements RowMapper<T>, 
 	protected abstract void readRow(ResultSet rs, int rowNum) throws SQLException;
 
 	private final void append(ElasticCharAppender out, String key, Object value, boolean first) {
-		if(!first){
-			out.append("; ");
-		}
+		out.append("\n  ");
 		out.append(key);
 		out.append('=');
 		if (value instanceof String) {
@@ -125,7 +123,7 @@ public abstract class BaseEntity<T extends BaseEntity> implements RowMapper<T>, 
 				append(out, e.getKey(), e.getValue(), first);
 				first = false;
 			}
-
+			out.append('\n');
 			out.append('}');
 			return out.toString();
 		} finally {
