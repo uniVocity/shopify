@@ -83,7 +83,7 @@ public class ShopifyWebhookListener {
 			log.info("Received '{}' notification: {}", description, json);
 			return true;
 		} else {
-			log.warn("Received INVALID '{}' notification: {}.\nInvalid Request: {}", json, Utils.printRequest(request));
+			log.warn("Received INVALID '{}' notification:\nInvalid Request: {}", json, Utils.printRequest(request));
 			return false;
 		}
 	}

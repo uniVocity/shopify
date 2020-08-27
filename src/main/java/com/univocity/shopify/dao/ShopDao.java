@@ -9,6 +9,7 @@ import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.database.*;
 import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
@@ -344,15 +345,11 @@ public class ShopDao extends BaseDao {
 		return auth;
 	}
 
-	public void updateShop(Shop shop) {
+	public void updateShop(Shop shop, String[] fields, Object[] values) {
 		notNull(shop, "Shop");
-		if (db.update("UPDATE shop SET updated_at = ? WHERE shop_name = ? AND id = ? AND deleted_at IS NULL AND id > 0",
-				new Object[]{new Date(),
-						//TODO: update shop specific configurations
-						//matching conditions:
-						shop.getShopName(),
-						shop.getId()
-				}) == 1) {
+		String upd = db.createUpdateStatement("shop", fields) + " WHERE shop_name = ? AND id = ? AND deleted_at IS NULL AND id > 0";
+
+		if (db.update(upd, ArrayUtils.addAll(values, shop.getShopName(), shop.getId())) == 1) {
 			addShopToIndex(shop);
 			log.info("Shop '{}' updated successfully", shop.getId());
 		} else {

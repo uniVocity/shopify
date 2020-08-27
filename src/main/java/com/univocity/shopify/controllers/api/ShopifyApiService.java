@@ -16,7 +16,6 @@ import org.springframework.context.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.*;
-
 import java.util.*;
 
 import static com.univocity.shopify.utils.Utils.*;
@@ -49,17 +48,20 @@ public class ShopifyApiService {
 	}
 
 
-	public void updateShopWebooks(Shop shop){
+	public void updateShopWebooks(Shop shop) {
 		Set<String> webhooks = new TreeSet<>();
 		registerWebHook(webhooks, shop, "orders/create", "/order/created");
 		registerWebHook(webhooks, shop, "orders/fulfilled", "/order/fulfilled");
 		registerWebHook(webhooks, shop, "app/uninstalled", "/uninstalled");
 		registerWebHook(webhooks, shop, "products/update", "/product/update");
-		shop.addWebhooks(webhooks);
+		if(!webhooks.isEmpty()) {
+			shop.addWebhooks(webhooks);
+			shops.updateShop(shop, new String[]{"webhooks"}, new Object[]{shop.getWebhooks()});
+		}
 	}
 
 	private void registerWebHook(Set<String> webhooks, Shop shop, String topic, String localEndpoint) {
-		if(shop.getWebhookSet().contains(topic)){
+		if (shop.getWebhookSet().contains(topic)) {
 			return;
 		}
 
