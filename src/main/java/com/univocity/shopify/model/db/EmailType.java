@@ -162,7 +162,7 @@ class DefaultEmailTemplates {
 				"\r\n" +
 				"Or simply scan this QR code: {{ " + QRCODE + " }}\r\n" +
 				"\r\n" +
-				"The purchase price is guaranteed until until: {{ " + EXPIRATION_DATE + ", mmm dd, yyyy }}.\r\n." +
+				"The purchase price is guaranteed until until: {{ " + EXPIRATION_DATE + ", mmm dd, yyyy }}.\r\n" +
 				"After that, the total payable will be updated according with the market price of {{ " + TOKEN_SYMBOL + " }}.\r\n" +
 				"\r\n" +
 				"Your order can be reviewed in the following link: {{ " + CHECKOUT_URL + " }}\r\n" +

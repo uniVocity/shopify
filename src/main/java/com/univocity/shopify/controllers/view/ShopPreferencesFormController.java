@@ -342,7 +342,6 @@ public class ShopPreferencesFormController {
 					renderer.setName(shop.getOwnerNameForEmailing());
 					renderer.setCheckoutUrl("https://checkout.shopify.com/123123/invoices/61a2d718be6c2472816c3827c5a75fe4");
 					renderer.setOrderUrl("https://" + shop.getDomain() + "/17122445/orders/f49c7024dba124a149d9ffe8f6");
-					renderer.setQrCode("<QR_CODE_HERE>"); //TODO: generate QR code from payment address
 					renderer.setPaymentAddress("addr1q9jap0f549256uvkmrwv2yq9vruphxqrm92szg03xgx4dhtdd0sqyslnjxvce9syyw4ktnrh0n7ct60zrs29wnef3jqqttmm2g");
 					renderer.setOrderId("1001");
 					renderer.setTokenSymbol("ADA");

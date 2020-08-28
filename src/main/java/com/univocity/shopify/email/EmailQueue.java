@@ -9,12 +9,15 @@ import com.univocity.shopify.utils.*;
 import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.io.*;
 import org.springframework.mail.*;
 import org.springframework.mail.javamail.*;
 import org.springframework.scheduling.annotation.*;
 
 import javax.mail.internet.*;
 import java.util.*;
+
+import static org.springframework.mail.javamail.MimeMessageHelper.*;
 
 public class EmailQueue {
 
@@ -121,16 +124,24 @@ public class EmailQueue {
 
 		MimeMessage message = mailSender.createMimeMessage();
 		try {
-			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+			MimeMessageHelper helper = new MimeMessageHelper(message, MULTIPART_MODE_RELATED, "UTF-8");
 
 			helper.setFrom(email.getFrom());
 			helper.setTo(email.getTo());
 			if (StringUtils.isNotBlank(email.getReplyTo())) { //populated via shop.getReplyToAddress()
 				helper.setReplyTo(email.getReplyTo());
 			}
-
 			helper.setSubject(email.getTitle());
-			helper.setText(email.getBody());
+			String body = email.getBody();
+
+
+			helper.setText(body, true);
+
+			if (body.contains("<img src='cid:")) {
+				String address = StringUtils.substringBetween(body, "<img src='cid:", "'>");
+				InputStreamSource imageInput = QrCode.generateQRCodeAttachment(address);
+				helper.addInline(address, imageInput, "image/png");
+			}
 		} catch (javax.mail.MessagingException e) {
 			log.warn("Unable to write e-mail", e);
 		}

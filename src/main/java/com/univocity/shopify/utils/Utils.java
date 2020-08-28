@@ -5,6 +5,7 @@ import com.univocity.parsers.common.input.*;
 import com.univocity.shopify.exception.*;
 import org.apache.commons.collections4.*;
 import org.apache.commons.io.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.*;
 import org.apache.commons.lang3.math.*;
 import org.springframework.core.io.*;
@@ -27,11 +28,10 @@ import static com.univocity.shopify.utils.Fnv64.*;
 import static java.lang.reflect.Array.*;
 import static java.sql.Connection.*;
 import static org.apache.commons.lang3.ArrayUtils.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
- * An utility class for validating inputs.
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  */
 public class Utils {
@@ -1744,11 +1744,11 @@ public class Utils {
 		return printKeyValuePairs(keys, separator, values, pairSeparator, null, valueTransformer, -1);
 	}
 
-	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer) {
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String> keyTransformer, Function<V, String> valueTransformer) {
 		return printKeyValuePairs(keys, separator, values, pairSeparator, keyTransformer, valueTransformer, -1);
 	}
 
-	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer, int length) {
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String> keyTransformer, Function<V, String> valueTransformer, int length) {
 		StringBuilder out = new StringBuilder();
 
 		int maxLength = length == -1 ? Math.max(keys.length, values.length) : length;
@@ -1867,7 +1867,7 @@ public class Utils {
 		return new java.sql.Date(zonedDateTime.toInstant().toEpochMilli());
 	}
 
-	public static String printRequestParameters(HttpServletRequest httpRequest){
+	public static String printRequestParameters(HttpServletRequest httpRequest) {
 		ElasticCharAppender out = borrowBuilder();
 		try {
 			appendRequestParameters(out, httpRequest);
@@ -1877,7 +1877,7 @@ public class Utils {
 		}
 	}
 
-	public static void appendRequestParameters(CharAppender out, HttpServletRequest httpRequest){
+	public static void appendRequestParameters(CharAppender out, HttpServletRequest httpRequest) {
 		Enumeration<String> params = httpRequest.getParameterNames();
 		boolean first = true;
 		while (params.hasMoreElements()) {
@@ -1902,6 +1902,9 @@ public class Utils {
 	}
 
 	public static String printRequest(HttpServletRequest httpRequest) {
+		if(httpRequest == null){
+			return "null";
+		}
 		ElasticCharAppender out = borrowBuilder();
 		try {
 
@@ -2201,7 +2204,7 @@ public class Utils {
 
 	public static void setBigDecimalIfNotNull(HttpServletRequest request, String header, Consumer<BigDecimal> callback) {
 		String str = request.getParameter(header);
-		if(str != null){
+		if (str != null) {
 			BigDecimal value = NumberUtils.createBigDecimal(str);
 			callback.accept(value);
 		}
@@ -2235,8 +2238,8 @@ public class Utils {
 
 	public static void setBooleanIfNotNull(HttpServletRequest request, String header, Consumer<Boolean> callback) {
 		String value = request.getParameter(header);
-		if(value != null) {
-			if("on".equals(value)){
+		if (value != null) {
+			if ("on".equals(value)) {
 				callback.accept(true);
 			} else {
 				callback.accept(Boolean.valueOf(value));
@@ -2246,12 +2249,11 @@ public class Utils {
 
 	public static void setBoolean(HttpServletRequest request, String header, Consumer<Boolean> callback) {
 		String value = request.getParameter(header);
-		if("on".equals(value)){
+		if ("on".equals(value)) {
 			callback.accept(true);
 		} else {
 			callback.accept(Boolean.valueOf(value));
 		}
-
 	}
 }
 

@@ -39,8 +39,8 @@ public class MessageRenderer {
 		set(EmailType.Keys.NAME, name);
 	}
 
-	public void setOrderUrl(String url){
-		if(url != null && url.contains("/authenticate?")){
+	public void setOrderUrl(String url) {
+		if (url != null && url.contains("/authenticate?")) {
 			url = StringUtils.substringBefore(url, "/authenticate?");
 		}
 		set(EmailType.Keys.ORDER_URL, url);
@@ -65,12 +65,12 @@ public class MessageRenderer {
 		}
 	}
 
-	public void setQrCode(String qrCode) {
-		set(QRCODE, qrCode);
-	}
-
 	public void setPaymentAddress(String paymentAddress) {
-		set(PAYMENT_ADDRESS, paymentAddress);
+		if (StringUtils.isNotBlank(paymentAddress)) {
+			paymentAddress = paymentAddress.trim();
+			set(PAYMENT_ADDRESS, paymentAddress);
+			set(body, QRCODE, "<img src='cid:" + paymentAddress + "'>");
+		}
 	}
 
 	public void setOrderId(String orderId) {
