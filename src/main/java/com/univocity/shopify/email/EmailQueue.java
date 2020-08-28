@@ -38,6 +38,9 @@ public class EmailQueue {
 	@Autowired
 	SystemMailSenderConfig systemMailSenderConfig;
 
+	@Autowired
+	MarkdownToHtml markdownToHtmlTransformer;
+
 	//invoked every 2 minutes with a fixed delay. Measured from the completion time of each preceding invocation.
 	@Scheduled(fixedDelay = 120000)
 	public void processAllEmails() {
@@ -134,6 +137,7 @@ public class EmailQueue {
 			helper.setSubject(email.getTitle());
 			String body = email.getBody();
 
+			body = markdownToHtmlTransformer.plaintextToHtml(body);
 
 			helper.setText(body, true);
 

@@ -145,6 +145,10 @@ public class ApplicationConfiguration {
 		return new SystemMailSenderConfig();
 	}
 
+	@Bean
+	MarkdownToHtml getMarkdownToHtmlTransformer() {
+		return new MarkdownToHtml();
+	}
 
 	@Bean
 	DataSource dataSource() {
