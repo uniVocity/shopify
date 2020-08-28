@@ -54,12 +54,6 @@ public class TestServiceConfiguration {
 		return new TestShopHelper("charging");
 	}
 
-	@Bean
-	ShopifyWebhookListener webhookListener(){
-		return new ShopifyWebhookListener();
-	}
-
-
 	public TestServiceConfiguration() {
 
 	}

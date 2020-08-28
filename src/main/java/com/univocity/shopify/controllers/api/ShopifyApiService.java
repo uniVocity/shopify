@@ -49,6 +49,9 @@ public class ShopifyApiService {
 
 
 	public void updateShopWebooks(Shop shop) {
+		if(app.isTestingLocally()){
+			return;
+		}
 		Set<String> webhooks = new TreeSet<>();
 		registerWebHook(webhooks, shop, "orders/create", "/order/created");
 		registerWebHook(webhooks, shop, "orders/fulfilled", "/order/fulfilled");
