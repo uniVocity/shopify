@@ -84,6 +84,12 @@ public class ShopifyOrder {
 	@JsonProperty
 	public String token;
 
+	@JsonProperty
+	public String gateway;
+
+	@JsonProperty
+	public boolean test;
+
 	public ShopifyOrder() {
 
 	}

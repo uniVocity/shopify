@@ -60,6 +60,9 @@ public class ShopifyWebhookListener {
 	ProductService productService;
 
 	@Autowired
+	OrderProcessingService orderProcessingService;
+
+	@Autowired
 	App app;
 
 	@Autowired
@@ -234,7 +237,11 @@ public class ShopifyWebhookListener {
 	public void orderPlaced(@RequestBody String json, HttpServletRequest request) {
 		if (isRequestValid("orderCreated", json, request)) {
 			String shopName = Utils.getShopName(request);
-			ordersDao.processOrder(json, shopName);
+			Order order = ordersDao.processOrder(json, shopName);
+			if (order != null) {
+				Shop shop = shops.getShop(shopName);
+				orderProcessingService.processNewOrder(order, shop);
+			}
 		}
 	}
 
@@ -251,10 +258,10 @@ public class ShopifyWebhookListener {
 		if (isRequestValid("appUninstalled", json, request)) {
 			String shopName = StringUtils.substringBetween(json, ",\"domain\":\"", "\"");
 
-			if(StringUtils.isNotBlank(shopName)){
-				if(!shopName.endsWith(".myshopify.com")){
+			if (StringUtils.isNotBlank(shopName)) {
+				if (!shopName.endsWith(".myshopify.com")) {
 					Shop shop = shops.getShopByDomain(shopName);
-					if(shop != null){
+					if (shop != null) {
 						shopName = shop.getShopName();
 					}
 				}

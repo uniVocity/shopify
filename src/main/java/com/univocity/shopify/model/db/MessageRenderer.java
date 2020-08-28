@@ -77,7 +77,7 @@ public class MessageRenderer {
 		set(ORDER_ID, orderId);
 	}
 
-	public void setTokenSymbol(String tokenSymbol) {
+	public void setCryptoTokenSymbol(String tokenSymbol) {
 		set(TOKEN_SYMBOL, tokenSymbol);
 	}
 

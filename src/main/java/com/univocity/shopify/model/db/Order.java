@@ -47,7 +47,7 @@ public class Order extends ShopifyEntity<Order> {
 		map.put("closed_at", getClosedAt());
 		map.put("cancelled_at", getCancelledAt());
 		map.put("status_url", getStatusUrl(null));
-		map.put("token", getToken());
+		map.put("token", getShopifyToken());
 		map.put("original_json", getOriginalJson());
 		map.put("customer_id", getCustomerId());
 
@@ -63,7 +63,7 @@ public class Order extends ShopifyEntity<Order> {
 		setEmail(rs.getString("email"));
 		setContactEmail(rs.getString("contact_email"));
 		setStatusUrl(rs.getString("status_url"));
-		setToken(rs.getString("token"));
+		setShopifyToken(rs.getString("token"));
 		setClosedAt(rs.getTimestamp("closed_at"));
 		setCancelledAt(rs.getTimestamp("cancelled_at"));
 		setCustomerId(readLong(rs, "customer_id"));
@@ -93,8 +93,6 @@ public class Order extends ShopifyEntity<Order> {
 		this.setShopifyId(order.id);
 		this.setTotalPriceUsd(order.totalPriceUsd);
 		this.setStatus(order.financialStatus == null ? null : FinancialStatus.valueOf(order.financialStatus));
-//		this.setTotalPriceCrypto(null);
-//		this.setPaymentAddress(null);
 	}
 
 	public Customer getCustomer() {
@@ -159,11 +157,11 @@ public class Order extends ShopifyEntity<Order> {
 	}
 
 
-	public String getToken() {
+	public String getShopifyToken() {
 		return token;
 	}
 
-	public void setToken(String token) {
+	public void setShopifyToken(String token) {
 		this.token = token;
 	}
 

@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.*;
 
 import java.util.*;
 
+import static com.univocity.shopify.model.db.FinancialStatus.*;
 import static com.univocity.shopify.utils.Utils.*;
 
 /**
@@ -41,11 +42,12 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 		return new Order();
 	}
 
-	public void processOrder(String json, String shopName) {
+	public Order processOrder(String json, String shopName) {
 		ShopifyOrder order = app.toObject(ShopifyOrder.class, json);
 		if (order != null) {
-			processOrder(order, shopName, json);
+			return processOrder(order, shopName, json);
 		}
+		return null;
 	}
 
 	public List<Order> getOrders(String shop) {
@@ -75,7 +77,7 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 				shopId, shopifyOrderId, shopifyOrderToken);
 	}
 
-	public void processOrder(ShopifyOrder shopifyOrder, String shopName, String json) {
+	public Order processOrder(ShopifyOrder shopifyOrder, String shopName, String json) {
 		Set<Long> productsInOrder = shopifyOrder.getProductIds();
 		if (productsInOrder.isEmpty()) {
 			log.debug("Received shopify order with no products. Order ID '{}', shop '{}'", shopifyOrder.id, shopName);
@@ -86,6 +88,20 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 		Order order = queryForOptionalEntity("SELECT * FROM orders WHERE shopify_id = ? AND shop_id = ? AND shopify_order_number = ? AND token = ?", shopifyOrder.id, shopId, shopifyOrder.orderNumber, shopifyOrder.token);
 		if (order == null) {
 			try {
+				FinancialStatus financialStatus = FinancialStatus.valueOf(shopifyOrder.financialStatus);
+
+				if (financialStatus == paid && "bogus".equalsIgnoreCase(shopifyOrder.gateway) && shopifyOrder.test) {//FIXME: temporary code to remove when running on an actual store
+					log.warn("Modifying shopify order {} from {} status from '{}' to 'pending'.", shopName, shopifyOrder.id, financialStatus);
+					financialStatus = pending;
+				}
+
+				if (!financialStatus.allowsBlockchainPayment()) {
+					log.info("Received shopify order {} from {} with status '{}'. Skipping.", shopName, shopifyOrder.id, financialStatus);
+					return null;
+				} else {
+					log.info("Received shopify order {} from {} with status '{}'. For blockchain payment.", shopName, shopifyOrder.id, financialStatus);
+				}
+
 				order = executeTransaction(transactionStatus -> {
 					Order out = insert(shopifyOrder, shopId, json);
 					if (out.getLineItems().isEmpty()) {
@@ -112,7 +128,9 @@ public class OrdersDao extends ShopifyEntityDao<Order> {
 			}
 		} else {
 			log.debug("Received duplicate shopify order ID '{}', shop '{}'", shopifyOrder.id, shopName);
+			return null;
 		}
+		return order;
 	}
 
 

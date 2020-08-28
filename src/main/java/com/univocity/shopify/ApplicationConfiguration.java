@@ -4,6 +4,7 @@ package com.univocity.shopify;
 import com.univocity.shopify.controllers.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
+import com.univocity.shopify.price.*;
 import com.univocity.shopify.service.*;
 import com.univocity.shopify.utils.*;
 import com.univocity.shopify.utils.database.*;
@@ -131,6 +132,15 @@ public class ApplicationConfiguration {
 		return new ProductService();
 	}
 
+	@Bean
+	OrderProcessingService orderProcessingService() {
+		return new OrderProcessingService();
+	}
+
+	@Bean
+	PriceAggregator priceAggregator() {
+		return new PriceAggregator("ADA", "USDT");
+	}
 
 	/*
 	 * SYSTEM

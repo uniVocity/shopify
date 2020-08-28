@@ -344,7 +344,7 @@ public class ShopPreferencesFormController {
 					renderer.setOrderUrl("https://" + shop.getDomain() + "/17122445/orders/f49c7024dba124a149d9ffe8f6");
 					renderer.setPaymentAddress("addr1q9jap0f549256uvkmrwv2yq9vruphxqrm92szg03xgx4dhtdd0sqyslnjxvce9syyw4ktnrh0n7ct60zrs29wnef3jqqttmm2g");
 					renderer.setOrderId("1001");
-					renderer.setTokenSymbol("ADA");
+					renderer.setCryptoTokenSymbol("ADA");
 					renderer.setOrderAmount("399.993412");
 
 					title = "(TEST) " + renderer.renderTitle();
