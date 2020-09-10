@@ -9,11 +9,16 @@ Initially, we are going to release and maintain an official
 immediately accessible to more than 500,000 online businesses 
 around the world who generate 800 million dollars per minute in sales.
 
+We are also creating an e-commerce friendly wallet to better support
+business needs of online stores that trade in higher volumes. Refer
+to the [free-commerce](https://github.com/uniVocity/free-commerce) project
+to learn more.
+
 Once smart contracts become available, we'll introduce support for subscriptions 
 and recurring payments in ADA and native tokens that run on the Cardano 
 blockchain.
 
-The code will be fully open-sourced and more advanced users will be able to 
+The code is fully open-sourced and more advanced users will be able to 
 customize, build and deploy it to their own servers.
 
 After [Shopify](https://www.shopify.com/?ref=univocity), we will move on to
@@ -23,9 +28,6 @@ for WordPress, Magento, etc.
 Source code and documentation will be available here on this GitHub repository,
 and the work has [already begun](https://github.com/uniVocity/shopify/commits/master)!
 
-## Progress
-
- - 
 
 ## Delegate to the **SHOP** pool to help expand the cardano ecosystem!
 
