@@ -34,6 +34,8 @@ and the work has [already begun](https://github.com/uniVocity/shopify/commits/ma
 
 ## Delegate to the **SHOP** pool to help expand the cardano ecosystem!
 
+<a href="https://adapools.org/pool/76ce5348012e971dff93887b4870dd8aeb0a7ffc02a25ccdf337fc1c" target="_blank"><img src="https://static.adapools.org/summary/adapools.org!ext!static.php!v=epoch_summary&pool=76ce5348012e971dff93887b4870dd8aeb0a7ffc02a25ccdf33.png" alt=""></a>
+
 We want to offer everything for free to help with the adoption of Cardano as 
 viable payment gateway for everyone.
  
