@@ -28,6 +28,16 @@ for WordPress, Magento, etc.
 Source code and documentation will be available here on this GitHub repository,
 and the work has [already begun](https://github.com/uniVocity/shopify/commits/master)!
 
+## Our Catalyst project
+
+We've applied for funding with the Fund2 catalyst project as we believe the integration with e-commerce will enable businesses to join the ecosystem
+
+For more details please visit:
+
+https://cardano.ideascale.com/a/dtd/Free-Commerce-sell-online-with-ADA/322288-48088
+
+* Registration is required to view the proposal.
+
 ## Videos
 
 [![Development integration demo](https://img.youtube.com/vi/UFeGmEiZKfA/0.jpg)](https://www.youtube.com/watch?v=UFeGmEiZKfA)
