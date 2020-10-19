@@ -21,7 +21,7 @@ public class EmailQueueDao {
 	ExtendedJdbcTemplate db;
 
 	@Autowired
-	App utils;
+	App app;
 
 	private static final String insert = generateInsertStatement("email_queue", "shop_id", "hash", "from_addr", "to_addr", "reply_to_addr", "title", "body");
 
@@ -55,7 +55,7 @@ public class EmailQueueDao {
 	}
 
 	public void clearUserMessages() {
-		if (utils.isDatabaseMySQL()) {
+		if (app.isDatabaseMySQL()) {
 			clearSentMessages(" AND shop_id <> 0 AND (created_at IS NULL OR created_at > DATE_SUB(NOW(), INTERVAL 1 HOUR))");
 		} else {
 			clearSentMessages(" AND shop_id <> 0 AND (created_at IS NULL OR created_at > DATEADD(day, -1, CURRENT_DATE()))");

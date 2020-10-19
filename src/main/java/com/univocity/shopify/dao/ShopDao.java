@@ -8,6 +8,8 @@ import com.univocity.shopify.exception.*;
 import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.database.*;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.jdbc.core.*;
@@ -15,8 +17,6 @@ import org.springframework.jdbc.core.*;
 import java.nio.charset.*;
 import java.util.*;
 import java.util.concurrent.*;
-
-import org.apache.commons.codec.binary.Base64;
 
 import static com.univocity.shopify.utils.Utils.*;
 import static org.apache.commons.lang3.StringUtils.*;
@@ -43,7 +43,7 @@ public class ShopDao extends BaseDao {
 	private Map<String, Shop> shopsByName;
 	private Map<Long, Shop> shopsById;
 
-	public void clearCaches(){
+	public void clearCaches() {
 		shopsByName.clear();
 		shopsById.clear();
 	}
@@ -195,8 +195,8 @@ public class ShopDao extends BaseDao {
 		return getShop(shopName).getShopToken();
 	}
 
-	public boolean isShopInstalled(String shopName){
-		return db.count("SELECT COUNT(*) FROM shop WHERE shop_name = ? AND shop_token IS NOT NULL AND deleted_at IS NULL") == 1;
+	public boolean isShopInstalled(String shopName) {
+		return db.count("SELECT COUNT(*) FROM shop WHERE shop_name = ? AND shop_token IS NOT NULL AND deleted_at IS NULL", shopName) == 1;
 	}
 
 	public void registerShopToken(String shopName, String shopToken, boolean refreshing) {
@@ -214,7 +214,7 @@ public class ShopDao extends BaseDao {
 			} catch (Exception ex) {
 				String msg = "Error updating token of shop '" + shopName + "'";
 				log.error(msg, ex);
-				systemMailSender.sendErrorEmail("License server error", msg, ex);
+				systemMailSender.sendErrorEmail("Cardano app server error", msg, ex);
 				printFailedShopAndToken(shopName, shopToken);
 			}
 		} else {
@@ -345,15 +345,11 @@ public class ShopDao extends BaseDao {
 		return auth;
 	}
 
-	public void updateShop(Shop shop) {
+	public void updateShop(Shop shop, String[] fields, Object[] values) {
 		notNull(shop, "Shop");
-		if (db.update("UPDATE shop SET updated_at = ? WHERE shop_name = ? AND id = ? AND deleted_at IS NULL AND id > 0",
-				new Object[]{new Date(),
-						//TODO: update shop specific configurations
-						//matching conditions:
-						shop.getShopName(),
-						shop.getId()
-				}) == 1) {
+		String upd = db.createUpdateStatement("shop", fields) + " WHERE shop_name = ? AND id = ? AND deleted_at IS NULL AND id > 0";
+
+		if (db.update(upd, ArrayUtils.addAll(values, shop.getShopName(), shop.getId())) == 1) {
 			addShopToIndex(shop);
 			log.info("Shop '{}' updated successfully", shop.getId());
 		} else {
@@ -435,9 +431,10 @@ public class ShopDao extends BaseDao {
 
 	public void deactivateShop(Shop shop) {
 		try {
-			db.update("UPDATE shop SET active = 0 WHERE id = " + shop.getId());
+			db.update("UPDATE shop SET active = 0, webhooks = NULL WHERE id = " + shop.getId());
 			shop.setActive(false);
-		}finally {
+			shop.setWebhooks(null);
+		} finally {
 			systemMailSender.sendEmail("Disabling shop " + shop.getId(), "Please review");
 		}
 	}
@@ -449,5 +446,14 @@ public class ShopDao extends BaseDao {
 			shop.setShopAuth(null);
 			getShopsById().remove(shop.getId());
 		}
+	}
+
+	public void activateShop(Shop shop) {
+		if (shop.isActive()) {
+			return;
+		}
+
+		shop.setActive(true);
+		db.update("UPDATE shop SET active = 1 WHERE id = " + shop.getId());
 	}
 }

@@ -12,14 +12,17 @@ import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
 import org.springframework.context.annotation.*;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.view.*;
 
 import javax.servlet.http.*;
+import java.nio.charset.*;
 import java.util.*;
 import java.util.concurrent.*;
 
 import static com.univocity.shopify.utils.Utils.*;
+import static org.springframework.web.bind.annotation.RequestMethod.*;
 
 
 /**
@@ -32,10 +35,10 @@ public class AuthenticationService {
 	private static final Logger log = LoggerFactory.getLogger(AuthenticationService.class);
 
 	@Autowired
-	private App utils;
+	App app;
 
 	@Autowired
-	private CredentialsDao credentials;
+	CredentialsDao credentials;
 
 	@Autowired
 	ShopifyApiService apiService;
@@ -56,7 +59,7 @@ public class AuthenticationService {
 
 	private String refreshToken;
 
-	private TimedCache<String, Long> nonces = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), 1000);
+	private final TimedCache<String, Long> nonces = new TimedCache<>(TimeUnit.MINUTES.toMillis(30), 1000);
 
 	private static String buildAccessTokenUrl(String shopName) {
 		if (StringUtils.isBlank(shopName)) {
@@ -65,35 +68,46 @@ public class AuthenticationService {
 		return Shop.getAdminUrl(shopName) + "/oauth/access_token";
 	}
 
-	@RequestMapping(value = "/", method = RequestMethod.GET)
+	@CrossOrigin(origins = "*", methods = GET)
+	@RequestMapping(value = "/", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@ResponseBody
 	public RedirectView firstAccess(@RequestParam("shop") String shopName, HttpServletRequest request) {
-		if(credentials.isShopInstalled(shopName)){
+		if (credentials.isShopInstalled(shopName)) {
 			Shop shop = shops.getShop(shopName);
-			if(shop.isActive()){
-				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/apps/univocity-license-manager'", shopName);
-				return new RedirectView(Shop.getAdminUrl(shop.getShopName()) + "/apps/univocity-license-manager");
+			if (shop.isActive()) {
+				log.info("Shop {} hitting /. Already installed and active. Redirecting to app in admin page at '/preferences'", shopName);
+				return new RedirectView(app.getEndpoint(shop.getShopName(), "/preferences"));
 			} else {
-				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/billing/auth' for installation", shopName);
-				return new RedirectView(utils.getEndpoint(shop.getShopName(), "/billing/auth"));
+				log.info("Shop {} hitting /. Already installed but not active. Redirecting to '/blockchain/activation' for installation", shopName);
+				return new RedirectView(app.getEndpoint(shop.getShopName(), "/blockchain/activation"));
 			}
-		} else {
-			log.info("Shop {} hitting /. Not installed. Redirecting to '/install' for installation", shopName);
-			return generateAppInstallLink(shopName, "false", request);
 		}
+
+		String parameters = Utils.printRequestParameters(request);
+		RedirectView out = new RedirectView("/install_page" + parameters);
+		return out;
 	}
 
-	@RequestMapping(value = "/install", method = RequestMethod.GET)
-	public RedirectView generateAppInstallLink(@RequestParam("shop") String shopName, HttpServletRequest request) {
-		log.info("Received app installation request for shop {}", shopName);
-		return generateAppInstallLink(shopName, "false", request);
-	}
+	@CrossOrigin(origins = "*", methods = GET)
+	@RequestMapping(value = "/install_page", produces = {MediaType.TEXT_HTML_VALUE, MediaType.APPLICATION_JSON_VALUE})
+	@ResponseBody
+	public String installPage(HttpServletRequest request) {
+		ParameterizedString html = new ParameterizedString(readTextFromResource("template/admin/install.html", StandardCharsets.UTF_8));
 
-	public RedirectView generateAppInstallLink(String shopName, String online, HttpServletRequest request) {
 		String nonce = UUID.randomUUID().toString().replaceAll("-", "");
 		nonces.put(nonce, System.currentTimeMillis());
 
-		String apiKey = credentials.apiKey();
-		String redirectEndpoint = "/login";
+		String url = getRedirectionURL(request);
+		html.set("REDIRECT", url);
+		html.set("NONCE", nonce);
+		html.set("API_KEY", app.getApiKey());
+
+
+		return html.applyParameterValues();
+	}
+
+	private String getRedirectionURL(HttpServletRequest request) {
+		String redirectEndpoint = "/install";
 
 		String baseUrl = getBaseUrl(request);
 		if (baseUrl.endsWith(":80")) {
@@ -102,32 +116,17 @@ public class AuthenticationService {
 			baseUrl = baseUrl.substring(0, baseUrl.length() - 4);
 		}
 
-		boolean isOnline = Boolean.valueOf(online);
-		String option = isOnline ? "per-user" : "";
-
-		String themeEditPermissions = "";
-		if (shopName.equals("univocity") || shopName.contains(".univocity.") || shopName.startsWith("univocity.")) {
-			themeEditPermissions = ",read_themes,write_themes,read_content,write_content";
-		}
-
-		String url = Shop.getAdminUrl(shopName) + "/oauth/authorize?client_id=" + apiKey + "&scope=read_orders,read_customers,read_products,write_draft_orders" + themeEditPermissions + "&redirect_uri=" + baseUrl + redirectEndpoint + "&state=" + nonce + "&grant_options[]=" + option;
-		log.info("Redirecting to installation URL of shop {}: {}", shopName, url);
-
-		RedirectView redirectView = new RedirectView();
-		redirectView.setUrl(url);
-
-		return redirectView;
+		return baseUrl + redirectEndpoint;
 	}
 
-
-	@RequestMapping("/login")
+	@RequestMapping("/install")
 	//Redirection URL (required). //Shopify calls this: https://example.org/some/redirect/uri?code={authorization_code}&hmac=da9d83c171400a41f8db91a950508985&timestamp=1409617544&state={nonce}&shop={hostname}
 	public RedirectView auth(@RequestParam("code") String authorizationCode, @RequestParam("shop") String hostname, @RequestParam(value = "state", required = false) String state, HttpServletRequest request) {
 		log.info("Processing shop registration: Shop {}", hostname);
 		RedirectView redirectView = new RedirectView();
-		if(state == null){
+		if (state == null) {
 			log.info("Received app reinstall request from shop {}, redirecting to setting page", hostname);
-			redirectView.setUrl(Shop.getAdminUrl(hostname) + "/apps/univocity-license-manager");
+			redirectView.setUrl(Shop.getAdminUrl(hostname) + "/apps/cardano");
 			return redirectView;
 		}
 		redirectView.setUrl(Shop.getAdminUrl(hostname));
@@ -158,7 +157,7 @@ public class AuthenticationService {
 		//   * The authorization code provided in the redirect described above.
 		String requestUrl = buildAccessTokenUrl(hostname);
 		log.info("Processing initial OAUTH authentication of shop {}", requestUrl);
-		Token token = utils.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", credentials.sharedSecret(), "code", authorizationCode});
+		Token token = app.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", credentials.sharedSecret(), "code", authorizationCode});
 
 		token.setShopName(hostname);
 
@@ -178,16 +177,16 @@ public class AuthenticationService {
 			shopDetails = apiService.getShopDetails(token.getShopName(), null);
 
 			shops.updateShopOwnerDetails(shops.getShop(token.getShopName()), shopDetails);
-			utils.sendEmailToShopOwner(token.getShopName(), MessageType.APP_INSTALLED);
+			app.sendEmailToShopOwner(token.getShopName(), MessageType.APP_INSTALLED);
 		} catch (Exception e) {
 			log.error("Error updating shop owner details. Shop: " + hostname, e);
 		}
 
-		utils.notify("App installed notification", "Shop " + token.getShopName() + " installed your app.\nDetails: " + shopDetails);
+		app.notify("App installed notification", "Shop " + token.getShopName() + " installed your app.\nDetails: " + shopDetails);
 
 //		Charge charge = shopifyApiService.setupMonthlyFee(token.getShopName(), !utils.isLive(), null);
 
-		redirectView.setUrl(Shop.getAdminUrl(token.getShopName()) + "/apps/univocity-license-manager");
+		redirectView.setUrl(Shop.getAdminUrl(token.getShopName()) + "/apps/cardano");
 
 		return redirectView;
 	}
@@ -249,7 +248,7 @@ public class AuthenticationService {
 		String requestUrl = buildAccessTokenUrl(shopName);
 
 		try {
-			Token newToken = utils.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", newSecret, "refresh_token", refreshToken, "access_token", oldToken});
+			Token newToken = app.postFor(Token.class, requestUrl, new String[]{"client_id", credentials.apiKey(), "client_secret", newSecret, "refresh_token", refreshToken, "access_token", oldToken});
 			credentials.registerShopToken(shopName, newToken.accessToken, true);
 			return true;
 		} catch (Exception ex) {

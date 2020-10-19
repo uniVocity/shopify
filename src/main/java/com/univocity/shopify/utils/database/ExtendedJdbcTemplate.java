@@ -1,6 +1,5 @@
 package com.univocity.shopify.utils.database;
 
-import com.univocity.parsers.common.*;
 import com.univocity.shopify.utils.*;
 import org.apache.commons.lang3.*;
 import org.springframework.dao.*;
@@ -180,8 +179,8 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
 		});
 	}
 
-	public long count(String sql) {
-		Number result = queryForOptionalObject(sql, Number.class);
+	public long count(String sql, Object... args) {
+		Number result = queryForOptionalObject(sql, args, Number.class);
 		return result.longValue();
 	}
 
@@ -232,19 +231,20 @@ public class ExtendedJdbcTemplate extends JdbcTemplate {
 	}
 
 	public static String createUpdateStatement(String tableName, String[] columnsToUpdate, String[] columnsToMatch, String additionalCriteria) {
+		StringBuilder out = new StringBuilder(createUpdateStatement(tableName, columnsToUpdate));
+		String matchingString = createWhere(columnsToMatch, additionalCriteria);
+		out.append(matchingString);
+		return out.toString();
+	}
 
+	public static String createUpdateStatement(String tableName, String[] columnsToUpdate) {
 		StringBuilder out = new StringBuilder();
-
 		out.append("update ").append(tableName);
 		if (columnsToUpdate.length > 0) {
 			out.append(" set ");
 			Utils.concatenate(out, "=?,", columnsToUpdate);
 			out.append("=?");
-
-			String matchingString = createWhere(columnsToMatch, additionalCriteria);
-			out.append(matchingString);
 		}
-
 		return out.toString();
 	}
 

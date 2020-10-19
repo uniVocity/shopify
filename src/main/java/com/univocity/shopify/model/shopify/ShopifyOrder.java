@@ -40,6 +40,9 @@ public class ShopifyOrder {
 	@JsonProperty(value = "total_price")
 	public BigDecimal totalPrice;
 
+	@JsonProperty(value = "total_price_usd")
+	public BigDecimal totalPriceUsd;
+
 	@JsonProperty
 	public BigDecimal discount;
 
@@ -51,6 +54,9 @@ public class ShopifyOrder {
 
 	@JsonProperty("line_items")
 	public List<ShopifyLineItem> lineItems;
+
+	@JsonProperty("billing_address")
+	public ShopifyAddress billingAddress;
 
 	@JsonProperty("created_at")
 	@JsonDeserialize(using = ShopifyDateDeserializer.class)
@@ -77,6 +83,12 @@ public class ShopifyOrder {
 
 	@JsonProperty
 	public String token;
+
+	@JsonProperty
+	public String gateway;
+
+	@JsonProperty
+	public boolean test;
 
 	public ShopifyOrder() {
 

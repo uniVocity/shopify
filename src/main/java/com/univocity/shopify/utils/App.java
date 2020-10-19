@@ -2,10 +2,13 @@ package com.univocity.shopify.utils;
 
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.*;
+import com.univocity.shopify.controllers.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
+import com.univocity.shopify.exception.*;
 import com.univocity.shopify.model.db.*;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
@@ -14,6 +17,7 @@ import org.springframework.util.*;
 import org.springframework.web.client.*;
 
 import javax.annotation.*;
+import javax.servlet.http.*;
 import java.net.*;
 import java.util.*;
 import java.util.concurrent.*;
@@ -107,17 +111,6 @@ public class App {
 			isMySql = config.getProperty("database.driver").contains("mysql");
 		}
 		return isMySql;
-	}
-
-	public static String getName(String first, String last, String alt) {
-		if (StringUtils.isBlank(first)) {
-			if (StringUtils.isBlank(last)) {
-				return alt;
-			} else {
-				return last;
-			}
-		}
-		return first;
 	}
 
 	public String getShopifyProxy() {
@@ -326,5 +319,161 @@ public class App {
 		} catch (Exception e) {
 			log.error("Error sending e-mail of type " + messageType + " to owner of shop " + shopName, e);
 		}
+	}
+
+	public <T> T parseJson(Class<T> outputType, String json) {
+		return toObject(outputType, json);
+	}
+
+	public <T> T toObject(Class<T> outputType, String json) {
+		try {
+			T object = (T) readerFor(outputType).readValue(json);
+			return object;
+		} catch (Exception e) {
+			String msg = "Error deserializing object of type '" + outputType + "' from JSON string: " + json;
+			log.error(msg, e);
+			if (systemMailSender != null) {
+				systemMailSender.sendErrorEmail("Cardano Shopify App server error", msg, e);
+			}
+			return null;
+		}
+	}
+
+	public static <T> T toObject(Class<T> outputType, HttpServletRequest request) {
+		try {
+			T object = (T) readerFor(outputType).readValue(request.getReader());
+			return object;
+		} catch (Exception e) {
+			String msg = "Error deserializing object of type '" + outputType + "' from request";
+			log.error(msg, e);
+			return null;
+		}
+	}
+
+	private static ObjectReader readerFor(Class outputType) {
+		ObjectReader out = objectReaders.get(outputType);
+		if (out == null) {
+			out = mapper.readerFor(outputType);
+			objectReaders.put(outputType, out);
+		}
+		return out;
+	}
+
+	public static ObjectWriter writerFor(Class outputType) {
+		ObjectWriter out = objectWriters.get(outputType);
+		if (out == null) {
+			out = mapper.writerFor(outputType);
+		}
+		return out;
+	}
+
+	public static String toJsonString(Object o) {
+		try {
+			return writerFor(o.getClass()).writeValueAsString(o);
+		} catch (Exception e) {
+			throw new IllegalStateException(e);
+		}
+	}
+
+
+	public boolean isShopInactive(String shopName) {
+		return !isShopActive(shopName);
+	}
+
+	public boolean isShopActive(String shopName) {
+		try {
+			return shops.getShop(shopName).isActive();
+		} catch (Exception e) {
+			notifyError(e, "Error finding shop with name " + shopName);
+			return false;
+		}
+	}
+
+	public Map<String, String[]> getShopifyProxyParams(HttpServletRequest request) {
+		Map<String, String[]> params = request.getParameterMap();
+
+		Map<String, String[]> refererParams;
+		if (!("/".equals(request.getServletPath()) || "/preferences".equals(request.getServletPath()))) {
+			String referrer = request.getHeader("referer");
+			if (StringUtils.isNotBlank(referrer)) {
+				referrer = decode(referrer);
+				refererParams = getUrlParameters(referrer);
+			} else {
+//				throw new ValidationException("Error processing request");
+				refererParams = new HashMap<>();
+			}
+		} else {
+			refererParams = new HashMap<>();
+		}
+
+		if (isLive()) {
+			if (!ShopifyRequestValidation.isHostnameValid(params)) {
+				throw new ValidationException("Error processing request");
+			}
+
+			String[] shop = params.get("shop");
+			if (ArrayUtils.isEmpty(shop) || shop.length > 1 || StringUtils.isBlank(shop[0])) {
+				throw new ValidationException("Error processing request");
+			}
+
+			if (params.containsKey("signature")) {
+				Map<String, String[]> paramsToValidate = getShopifySignatureParameters(params);
+				if (!ShopifyRequestValidation.isSignatureValid(paramsToValidate, credentials.sharedSecret())) {
+					if (!ShopifyRequestValidation.isSignatureValid(params, credentials.sharedSecret())) { // file download uses all params for some reason.
+						throw new ValidationException("Error processing request");
+					}
+				}
+			} else {
+				if (!ShopifyRequestValidation.isHmacValid(params, credentials.sharedSecret())) {
+					throw new ValidationException("Error processing request");
+				}
+			}
+		}
+
+		refererParams.putAll(params);
+
+		return refererParams;
+	}
+
+	public static Map<String, String[]> getShopifySignatureParameters(Map<String, String[]> requestParams) {
+		Map<String, String[]> paramsToValidate = new HashMap<>();
+		paramsToValidate.put("shop", requestParams.get("shop"));
+		paramsToValidate.put("path_prefix", requestParams.get("path_prefix"));
+		paramsToValidate.put("timestamp", requestParams.get("timestamp"));
+		paramsToValidate.put("signature", requestParams.get("signature"));
+		return paramsToValidate;
+	}
+
+	public boolean isRequestInvalid(String shopName, HttpServletRequest request) {
+		return !isRequestValid(shopName, request);
+	}
+
+	public boolean isRequestValid(String shopName, HttpServletRequest request) {
+		if (isLive() && !ShopifyRequestValidation.isRequestValid(shopName, request, credentials.sharedSecret())) {
+			return false;
+		}
+		return true;
+	}
+
+	public String getApiKey() {
+		return config.getProperty("api.key");
+	}
+
+	public String getShopDomain(String shopName) {
+		if (isTestingLocally()) {
+			return "localhost:8787";
+		}
+
+		Shop shop = shops.getShop(shopName);
+		String domain = shop.getDomain();
+
+		if (StringUtils.isBlank(domain)) {
+			if (shopName.endsWith(".myshopify.com")) {
+				domain = shopName;
+			} else {
+				domain = shopName + ".myshopify.com";
+			}
+		}
+		return domain;
 	}
 }

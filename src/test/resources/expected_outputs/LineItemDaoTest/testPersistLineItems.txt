@@ -1,0 +1,11 @@
+Items of order #1003
+LineItem{
+  id=1
+  shop_id=1
+  shopify_id=5793606697114
+  order_id=1
+  product_id=1
+  quantity=1
+  title='Sock'
+  variant_id=2
+}

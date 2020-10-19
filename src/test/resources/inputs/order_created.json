@@ -1,0 +1,344 @@
+{
+  "id": 2654044848282,
+  "email": "jbax@univocity.com",
+  "closed_at": null,
+  "created_at": "2020-08-26T21:44:09-04:00",
+  "updated_at": "2020-08-26T21:44:10-04:00",
+  "number": 3,
+  "note": null,
+  "token": "fa5832c63b399dde2cef3756b2560082",
+  "gateway": "bogus",
+  "test": true,
+  "total_price": "11.10",
+  "subtotal_price": "1.00",
+  "total_weight": 25,
+  "total_tax": "0.10",
+  "taxes_included": false,
+  "currency": "AUD",
+  "financial_status": "pending",
+  "confirmed": true,
+  "total_discounts": "0.00",
+  "total_line_items_price": "1.00",
+  "cart_token": "717d51048171bb9b94bccd6bb12603f8",
+  "buyer_accepts_marketing": false,
+  "name": "#1003",
+  "referring_site": "",
+  "landing_site": "\/",
+  "cancelled_at": null,
+  "cancel_reason": null,
+  "total_price_usd": "7.99",
+  "checkout_token": "ef563d0fbfc01c7b7443cf3389ceda6c",
+  "reference": null,
+  "user_id": null,
+  "location_id": null,
+  "source_identifier": null,
+  "source_url": null,
+  "processed_at": "2020-08-26T21:44:08-04:00",
+  "device_id": null,
+  "phone": null,
+  "customer_locale": "en",
+  "app_id": 580111,
+  "browser_ip": "98.98.98.4",
+  "landing_site_ref": null,
+  "order_number": 1003,
+  "discount_applications": [],
+  "discount_codes": [],
+  "note_attributes": [],
+  "payment_gateway_names": [
+    "bogus"
+  ],
+  "processing_method": "direct",
+  "checkout_id": 14651921629338,
+  "source_name": "web",
+  "fulfillment_status": null,
+  "tax_lines": [
+    {
+      "price": "0.10",
+      "rate": 0.1,
+      "title": "GST",
+      "price_set": {
+        "shop_money": {
+          "amount": "0.10",
+          "currency_code": "AUD"
+        },
+        "presentment_money": {
+          "amount": "0.10",
+          "currency_code": "AUD"
+        }
+      }
+    }
+  ],
+  "tags": "",
+  "contact_email": "jbax@univocity.com",
+  "order_status_url": "https:\/\/cardano-integration.myshopify.com\/46256357530\/orders\/fa5832c63b399dde2cef3756b2560082\/authenticate?key=ca4d5188e4f10e9f21f6d419b087f84a",
+  "presentment_currency": "AUD",
+  "total_line_items_price_set": {
+    "shop_money": {
+      "amount": "1.00",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "1.00",
+      "currency_code": "AUD"
+    }
+  },
+  "total_discounts_set": {
+    "shop_money": {
+      "amount": "0.00",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "0.00",
+      "currency_code": "AUD"
+    }
+  },
+  "total_shipping_price_set": {
+    "shop_money": {
+      "amount": "10.00",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "10.00",
+      "currency_code": "AUD"
+    }
+  },
+  "subtotal_price_set": {
+    "shop_money": {
+      "amount": "1.00",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "1.00",
+      "currency_code": "AUD"
+    }
+  },
+  "total_price_set": {
+    "shop_money": {
+      "amount": "11.10",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "11.10",
+      "currency_code": "AUD"
+    }
+  },
+  "total_tax_set": {
+    "shop_money": {
+      "amount": "0.10",
+      "currency_code": "AUD"
+    },
+    "presentment_money": {
+      "amount": "0.10",
+      "currency_code": "AUD"
+    }
+  },
+  "line_items": [
+    {
+      "id": 5793606697114,
+      "variant_id": 35919672869018,
+      "title": "Sock",
+      "quantity": 1,
+      "sku": "s1",
+      "variant_title": "white",
+      "vendor": "cardano-integration",
+      "fulfillment_service": "manual",
+      "product_id": 5664741327002,
+      "requires_shipping": true,
+      "taxable": true,
+      "gift_card": false,
+      "name": "Sock - white",
+      "variant_inventory_management": "shopify",
+      "properties": [],
+      "product_exists": true,
+      "fulfillable_quantity": 1,
+      "grams": 25,
+      "price": "1.00",
+      "total_discount": "0.00",
+      "fulfillment_status": null,
+      "price_set": {
+        "shop_money": {
+          "amount": "1.00",
+          "currency_code": "AUD"
+        },
+        "presentment_money": {
+          "amount": "1.00",
+          "currency_code": "AUD"
+        }
+      },
+      "total_discount_set": {
+        "shop_money": {
+          "amount": "0.00",
+          "currency_code": "AUD"
+        },
+        "presentment_money": {
+          "amount": "0.00",
+          "currency_code": "AUD"
+        }
+      },
+      "discount_allocations": [],
+      "duties": [],
+      "admin_graphql_api_id": "gid:\/\/shopify\/LineItem\/5793606697114",
+      "tax_lines": [
+        {
+          "title": "GST",
+          "price": "0.10",
+          "rate": 0.1,
+          "price_set": {
+            "shop_money": {
+              "amount": "0.10",
+              "currency_code": "AUD"
+            },
+            "presentment_money": {
+              "amount": "0.10",
+              "currency_code": "AUD"
+            }
+          }
+        }
+      ],
+      "origin_location": {
+        "id": 2327607935130,
+        "country_code": "AU",
+        "province_code": "SA",
+        "name": "cardano-integration",
+        "address1": "29 Campbell Drive",
+        "address2": "",
+        "city": "Reynella East",
+        "zip": "5161"
+      }
+    }
+  ],
+  "fulfillments": [],
+  "refunds": [],
+  "total_tip_received": "0.0",
+  "original_total_duties_set": null,
+  "current_total_duties_set": null,
+  "admin_graphql_api_id": "gid:\/\/shopify\/Order\/2654044848282",
+  "shipping_lines": [
+    {
+      "id": 2205050044570,
+      "title": "Standard",
+      "price": "10.00",
+      "code": "Standard",
+      "source": "shopify",
+      "phone": null,
+      "requested_fulfillment_service_id": null,
+      "delivery_category": null,
+      "carrier_identifier": null,
+      "discounted_price": "10.00",
+      "price_set": {
+        "shop_money": {
+          "amount": "10.00",
+          "currency_code": "AUD"
+        },
+        "presentment_money": {
+          "amount": "10.00",
+          "currency_code": "AUD"
+        }
+      },
+      "discounted_price_set": {
+        "shop_money": {
+          "amount": "10.00",
+          "currency_code": "AUD"
+        },
+        "presentment_money": {
+          "amount": "10.00",
+          "currency_code": "AUD"
+        }
+      },
+      "discount_allocations": [],
+      "tax_lines": []
+    }
+  ],
+  "billing_address": {
+    "first_name": "Jeronimo",
+    "address1": "Blah blah blah",
+    "phone": null,
+    "city": "blah",
+    "zip": "5000",
+    "province": "South Australia",
+    "country": "Australia",
+    "last_name": "Backes",
+    "address2": "",
+    "company": null,
+    "latitude": -34.9328294,
+    "longitude": 138.6038129,
+    "name": "Jeronimo Backes",
+    "country_code": "AU",
+    "province_code": "SA"
+  },
+  "shipping_address": {
+    "first_name": "Jeronimo",
+    "address1": "Blah blah blah",
+    "phone": null,
+    "city": "blah",
+    "zip": "5000",
+    "province": "South Australia",
+    "country": "Australia",
+    "last_name": "Backes",
+    "address2": "",
+    "company": null,
+    "latitude": -34.9328294,
+    "longitude": 138.6038129,
+    "name": "Jeronimo Backes",
+    "country_code": "AU",
+    "province_code": "SA"
+  },
+  "client_details": {
+    "browser_ip": "203.213.17.20",
+    "accept_language": "en-US,en;q=0.5",
+    "user_agent": "Mozilla\/5.0 (X11; Ubuntu; Linux x86_64; rv:80.0) Gecko\/20100101 Firefox\/80.0",
+    "session_hash": "e01bdcf9c0d6d6a77b6ec581413902a7",
+    "browser_width": 1908,
+    "browser_height": 977
+  },
+  "payment_details": {
+    "credit_card_bin": "1",
+    "avs_result_code": null,
+    "cvv_result_code": null,
+    "credit_card_number": "•••• •••• •••• 1",
+    "credit_card_company": "Bogus"
+  },
+  "customer": {
+    "id": 3929512542362,
+    "email": "jbax@univocity.com",
+    "accepts_marketing": false,
+    "created_at": "2020-08-26T19:42:06-04:00",
+    "updated_at": "2020-08-26T21:44:09-04:00",
+    "first_name": "Jeronimo",
+    "last_name": "Backes",
+    "orders_count": 0,
+    "state": "disabled",
+    "total_spent": "0.00",
+    "last_order_id": null,
+    "note": null,
+    "verified_email": true,
+    "multipass_identifier": null,
+    "tax_exempt": false,
+    "phone": null,
+    "tags": "",
+    "last_order_name": null,
+    "currency": "AUD",
+    "accepts_marketing_updated_at": "2020-08-26T19:42:06-04:00",
+    "marketing_opt_in_level": null,
+    "admin_graphql_api_id": "gid:\/\/shopify\/Customer\/3929512542362",
+    "default_address": {
+      "id": 4619231527066,
+      "customer_id": 3929512542362,
+      "first_name": "Jeronimo",
+      "last_name": "Backes",
+      "company": null,
+      "address1": "Blah blah blah",
+      "address2": "",
+      "city": "blah",
+      "province": "South Australia",
+      "country": "Australia",
+      "zip": "5000",
+      "phone": null,
+      "name": "Jeronimo Backes",
+      "province_code": "SA",
+      "country_code": "AU",
+      "country_name": "Australia",
+      "default": true
+    }
+  }
+}

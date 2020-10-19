@@ -1,0 +1,2 @@
+CREATE TRIGGER customer_on_insert BEFORE INSERT ON customer FOR EACH ROW SET NEW.created_at = IFNULL(NEW.created_at, NOW()), NEW.updated_at = IFNULL(NEW.updated_at, NOW());
+CREATE TRIGGER customer_on_update BEFORE UPDATE ON customer FOR EACH ROW SET NEW.updated_at = IFNULL(NEW.updated_at, NOW());

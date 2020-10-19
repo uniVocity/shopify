@@ -8,10 +8,9 @@ import com.univocity.shopify.utils.*;
 import org.apache.commons.lang3.*;
 import org.slf4j.*;
 
-import java.math.*;
 import java.text.*;
 
-import static com.univocity.shopify.model.db.Keys.*;
+import static com.univocity.shopify.model.db.EmailType.Keys.*;
 import static com.univocity.shopify.utils.Utils.*;
 
 
@@ -37,18 +36,18 @@ public class MessageRenderer {
 	}
 
 	public void setName(String name) {
-		set(NAME, name);
+		set(EmailType.Keys.NAME, name);
 	}
 
-	public void setProductName(String productName) {
-		set(PRODUCT_NAME, productName);
-	}
-
-	public void setOrderUrl(String url){
-		if(url != null && url.contains("/authenticate?")){
+	public void setOrderUrl(String url) {
+		if (url != null && url.contains("/authenticate?")) {
 			url = StringUtils.substringBefore(url, "/authenticate?");
 		}
-		set(ORDER_URL, url);
+		set(EmailType.Keys.ORDER_URL, url);
+	}
+
+	public void setExpirationDate(java.sql.Date date) {
+		set(EXPIRATION_DATE, date);
 	}
 
 
@@ -64,11 +63,30 @@ public class MessageRenderer {
 			}
 			set(STORE_NAME, name);
 		}
+	}
 
+	public void setPaymentAddress(String paymentAddress) {
+		if (StringUtils.isNotBlank(paymentAddress)) {
+			paymentAddress = paymentAddress.trim();
+			set(PAYMENT_ADDRESS, paymentAddress);
+			set(body, QRCODE, "<img src='cid:" + paymentAddress + "'>");
+		}
+	}
+
+	public void setOrderId(String orderId) {
+		set(ORDER_ID, orderId);
+	}
+
+	public void setCryptoTokenSymbol(String tokenSymbol) {
+		set(TOKEN_SYMBOL, tokenSymbol);
 	}
 
 	public void setCheckoutUrl(String checkoutUrl) {
 		set(CHECKOUT_URL, checkoutUrl);
+	}
+
+	public void setOrderAmount(String orderAmount) {
+		set(ORDER_AMOUNT, orderAmount);
 	}
 
 	private String removeLinesWithNull(ParameterizedString s) {

@@ -1,0 +1,428 @@
+.input {
+    max-width: auto;
+    min-width: 75px;
+    vertical-align: baseline;
+    height: auto;
+    margin: 0;
+    color: #000000;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    padding: 5px 10px;
+    border: 1px solid #c4cdd5;
+    border-radius: 3px;
+    line-height: 2.4rem;
+    font-weight: 400;
+    text-transform: initial;
+    letter-spacing: initial;
+    box-sizing: border-box;
+    display: block;
+    font-size: 1.4rem;
+    width: 100%;
+}
+
+.input[readonly] {
+    background: #f9fafb;
+    color: gray;
+}
+
+.no-border {
+    border: none !important;
+}
+
+.button {
+    background-color: #007ace;
+    color: #ffffff;
+    border: 1px solid #007ace;
+    font-size: 16px;
+    line-height: 1.6rem;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    padding: 0.9rem 1.5rem;
+    border-radius: 3px;
+    height: auto;
+    white-space: nowrap;
+    text-transform: none;
+    font-family: inherit;
+    font-weight: normal;
+    position: relative;
+    vertical-align: middle;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-appearance: none;
+    -webkit-tap-highlight-color: transparent;
+    margin-right: 10px;
+    text-decoration: none;
+}
+
+.button:hover, .button:focus, .tab-button:hover {
+    border: 1px solid #084e8a;
+    background-color: #084e8a !important;
+    color: #ffffff;
+    text-decoration: none
+}
+
+.tiny {
+    font-size: 11px;
+    line-height: 0.5rem;
+    margin: 5px
+}
+
+.disable {
+    background: #900008 !important;
+    border: 1px solid #900008 !important;
+}
+
+.disable.tab-selected {
+    background: red !important;
+}
+
+.disable:hover, .disable:focus {
+    border: 1px solid red;
+    background: red !important;
+    color: #ffffff;
+    text-decoration: none
+}
+
+.enable {
+    background: #006f09;
+    border: 1px solid #006f09;
+}
+
+.enable:hover, .enable:focus {
+    border: 1px solid green;
+    background: green;
+    color: #ffffff;
+    text-decoration: none
+}
+
+.description {
+    font-size: 1.4rem;
+    line-height: 2rem;
+    font-weight: 400;
+    text-transform: initial;
+    letter-spacing: initial;
+    color: #637381;
+    word-wrap: break-word;
+    word-break: normal;
+    margin-top: 0.4rem
+}
+
+ul.description{
+    list-style: none;
+}
+
+.title-description {
+    color: #637381;
+    padding: 0 0 1.6rem;
+    margin-bottom: 0.8rem
+}
+
+.connected {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex
+}
+
+.label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 1.4rem;
+    line-height: 2rem;
+    font-weight: 400;
+    text-transform: initial;
+    letter-spacing: initial;
+    margin-top: 10px;
+}
+
+.stack {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-direction: column;
+    -ms-flex-direction: column;
+    flex-direction: column;
+    -webkit-flex: 0 0 auto;
+    -ms-flex: 0 0 auto;
+    flex: 0 0 auto
+}
+
+h2 {
+    font-size: 1.7rem;
+    line-height: 2.4rem;
+    font-weight: 600;
+    margin: 0 0 20px
+}
+
+.page-actions {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    max-width: 103.2rem;
+    margin: 0 auto;
+    padding: 1.6rem 0;
+    border-top: 1px solid #c4cdd5
+}
+
+.card-actions {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    max-width: 103.2rem;
+}
+
+
+.actions-centered {
+    text-align: center;
+    display: block;
+    margin-top: 5px;
+}
+
+.card {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(63, 63, 68, 0.05), 0 1px 3px 0 rgba(63, 63, 68, 0.15);
+    border-radius: 2px;
+    padding: 2px 2px 2px 15px;
+    margin-top: 10px;
+    padding: 1rem 2rem 1.6rem 1.6rem;
+}
+
+@media (max-width: 1150px) {
+    .card {
+        overflow: auto;
+    }
+}
+
+.section-description {
+    -webkit-flex: 1 1 24rem;
+    -ms-flex: 1 1 24rem;
+    flex: 1 1 24rem;
+    padding: 0 6.4rem 0 0;
+    margin-top: 10px;
+}
+
+.section-content {
+    -webkit-flex: 2 1 48rem;
+    -ms-flex: 2 1 48rem;
+    flex: 2 1 48rem;
+    max-width: 100%;
+    min-width: 0
+}
+
+.section {
+    display: -webkit-flex;
+    display: -ms-flexbox;
+    display: flex;
+    -webkit-flex-wrap: wrap;
+    -ms-flex-wrap: wrap;
+    flex-wrap: wrap;
+    -webkit-justify-content: center;
+    -ms-flex-pack: center;
+    justify-content: center;
+    max-width: 103.2rem;
+    margin: 0 auto 1.6rem
+}
+
+.section + .section {
+    margin-top: 0;
+    padding-top: 1.6rem;
+    border-top: 1px solid #c4cdd5
+}
+
+.ui-card {
+    background-color: #ffffff;
+    box-shadow: 0 0 0 2px rgba(63, 63, 68, 0.05), 0 1px 3px 0 rgba(63, 63, 68, 0.15);
+    border-radius: 2px;
+    padding: 2px 2px 2px 15px;
+    margin-top: 10px;
+}
+
+td input {
+    width: 100%;
+}
+
+.small {
+    height: 24px;
+    font-size: small;
+}
+
+.small--text {
+    font-size: small;
+}
+
+.narrow {
+    width: 150px;
+}
+
+/* Popup container */
+.popup {
+    position: relative;
+    display: inline-block;
+    cursor: pointer;
+}
+
+/* The actual popup (appears on top) */
+.popup .popuptext {
+    font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    font-size: small;
+    visibility: hidden;
+    background-color: #555;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 5px;
+    position: absolute;
+    z-index: 1;
+    bottom: 125%;
+    left: 50%;
+    transform: translate(-50%, 0);
+}
+
+/* Popup arrow */
+.popup .popuptext::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+	border: 5px solid transparent;
+	border-top-color: #555;
+}
+
+/* Toggle this class when clicking on the popup container (hide and show the popup) */
+.popup .show {
+    visibility: visible;
+    -webkit-animation: fadeIn 500ms;
+    animation: fadeIn 500ms;
+    display: inline-block;
+}
+
+/* Add animation (fade in the popup) */
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.active_border {
+    border: 2px solid rgb(136, 136, 136);
+}
+
+.loader {
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #3498db; /* Blue */
+    border-radius: 50%;
+    width: 23px;
+    height: 23px;
+    animation: spin 2s linear infinite;
+    margin-left: 10px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.icon-size-15 {
+    width: 15px;
+    height: 15px;
+    float: left;
+}
+
+.code {
+    font-family: Consolas, Monaco, Lucida Console, Liberation Mono, DejaVu Sans Mono, Bitstream Vera Sans Mono, Courier New, monospace;
+    font-size: small;
+    white-space: pre;
+    width: 100%;
+    overflow-x: scroll;
+}
+
+textarea {
+    overflow-y: scroll;
+    width: 100%;
+}
+
+.tab-bar {
+    width: 100%;
+    overflow: hidden;
+    color: #212b35;
+    background-color: #212b35;
+}
+
+.tab-bar .tab-selected {
+    background-color: #007ace;
+}
+
+.tab-button {
+    background-color: #212b35;
+    color: #ffffff;
+    border: 1px solid #212b35;
+    font-size: small;
+    box-sizing: border-box;
+    cursor: pointer;
+    display: inline-block;
+    outline: 0;
+    padding: 5px 5px;
+    vertical-align: middle;
+    overflow: hidden;
+    text-decoration: none;
+    text-align: center;
+    white-space: nowrap
+}
+
+.tab-buttons {
+    max-width: 103.2rem;
+    margin: 0 auto;
+}
+
+.tab-buttons .tab-button{
+    font-size: large;
+    padding: 15px;
+}
+
+button span {
+    float: right;
+    display: block;
+    margin-left: 8px;
+}
+
+.hide {
+    visibility: hidden;
+
+}
+
+.invalid {
+    border: 1px solid red
+}
+
+.card p {
+    margin-top: 0em;
+    margin-bottom: 1em;
+}
+
+.card table {
+    margin: 0 auto;
+}
+
+.card table tr {
+    font-size: small;
+}
+

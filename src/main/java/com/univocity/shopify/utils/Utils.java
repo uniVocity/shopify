@@ -1,25 +1,13 @@
-/*******************************************************************************
- * Copyright 2014 Univocity Software Pty Ltd
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- ******************************************************************************/
+
 package com.univocity.shopify.utils;
 
 import com.univocity.parsers.common.input.*;
 import com.univocity.shopify.exception.*;
 import org.apache.commons.collections4.*;
 import org.apache.commons.io.*;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.*;
+import org.apache.commons.lang3.math.*;
 import org.springframework.core.io.*;
 import org.springframework.http.*;
 import org.springframework.security.crypto.codec.*;
@@ -27,6 +15,7 @@ import org.springframework.security.crypto.codec.*;
 import javax.servlet.http.*;
 import java.io.*;
 import java.lang.reflect.*;
+import java.math.*;
 import java.net.*;
 import java.nio.charset.*;
 import java.security.*;
@@ -39,11 +28,10 @@ import static com.univocity.shopify.utils.Fnv64.*;
 import static java.lang.reflect.Array.*;
 import static java.sql.Connection.*;
 import static org.apache.commons.lang3.ArrayUtils.*;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.apache.commons.lang3.StringUtils.*;
 
 /**
- * An utility class for validating inputs.
- *
  * @author Univocity Software Pty Ltd - <a href="mailto:parsers@univocity.com">parsers@univocity.com</a>
  */
 public class Utils {
@@ -1466,20 +1454,6 @@ public class Utils {
 		return longHash(FNV_64_INIT, strings);
 	}
 
-	public static String printStackTrace(Throwable ex) {
-		StringWriter w = new StringWriter();
-		PrintWriter pw = new PrintWriter(w);
-		try {
-			ex.printStackTrace(pw);
-			w.flush();
-			w.close();
-		} catch (Exception e) {
-			//ignore
-		}
-
-		return w.toString();
-	}
-
 	public static String shortenStackTrace(String stackTrace, int maxLines) {
 		ElasticCharAppender s = borrowBuilder();
 		try {
@@ -1770,11 +1744,11 @@ public class Utils {
 		return printKeyValuePairs(keys, separator, values, pairSeparator, null, valueTransformer, -1);
 	}
 
-	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer) {
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String> keyTransformer, Function<V, String> valueTransformer) {
 		return printKeyValuePairs(keys, separator, values, pairSeparator, keyTransformer, valueTransformer, -1);
 	}
 
-	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String>keyTransformer, Function<V, String> valueTransformer, int length) {
+	public static <K, V> String printKeyValuePairs(K[] keys, String separator, V[] values, String pairSeparator, Function<K, String> keyTransformer, Function<V, String> valueTransformer, int length) {
 		StringBuilder out = new StringBuilder();
 
 		int maxLength = length == -1 ? Math.max(keys.length, values.length) : length;
@@ -1893,8 +1867,44 @@ public class Utils {
 		return new java.sql.Date(zonedDateTime.toInstant().toEpochMilli());
 	}
 
+	public static String printRequestParameters(HttpServletRequest httpRequest) {
+		ElasticCharAppender out = borrowBuilder();
+		try {
+			appendRequestParameters(out, httpRequest);
+			return out.getAndReset();
+		} finally {
+			releaseBuilder(out);
+		}
+	}
+
+	public static void appendRequestParameters(CharAppender out, HttpServletRequest httpRequest) {
+		Enumeration<String> params = httpRequest.getParameterNames();
+		boolean first = true;
+		while (params.hasMoreElements()) {
+			if (first) {
+				out.append('?');
+				first = false;
+			} else {
+				out.append('&');
+			}
+			String paramName = params.nextElement();
+			out.append(paramName);
+			out.append('=');
+			String[] values = httpRequest.getParameterValues(paramName);
+			if (values.length == 1) {
+				out.append(values[0]);
+			} else if (values.length > 1) {
+				out.append('[');
+				out.append(StringUtils.join(values, ","));
+				out.append(']');
+			}
+		}
+	}
 
 	public static String printRequest(HttpServletRequest httpRequest) {
+		if(httpRequest == null){
+			return "null";
+		}
 		ElasticCharAppender out = borrowBuilder();
 		try {
 
@@ -1904,27 +1914,7 @@ public class Utils {
 			out.append(':');
 			out.append(httpRequest.getRequestURI());
 
-			Enumeration params = httpRequest.getParameterNames();
-			boolean first = true;
-			while (params.hasMoreElements()) {
-				if (first) {
-					out.append('?');
-					first = false;
-				} else {
-					out.append('&');
-				}
-				String paramName = (String) params.nextElement();
-				out.append(paramName);
-				out.append('=');
-				String[] values = httpRequest.getParameterValues(paramName);
-				if (values.length == 1) {
-					out.append(values[0]);
-				} else if (values.length > 1) {
-					out.append('[');
-					out.append(StringUtils.join(values, ","));
-					out.append(']');
-				}
-			}
+			appendRequestParameters(out, httpRequest);
 
 			out.append("\n----[ Headers ]----\n");
 
@@ -2006,6 +1996,264 @@ public class Utils {
 			return null;
 		}
 		return shop;
+	}
+
+	public static java.sql.Timestamp toTimestamp(ZonedDateTime date) {
+		if (date == null) {
+			return null;
+		}
+		return java.sql.Timestamp.valueOf(date.toLocalDateTime());
+	}
+
+	public static String getName(String first, String last, String alt) {
+		if (StringUtils.isBlank(first)) {
+			if (StringUtils.isBlank(last)) {
+				return alt;
+			} else {
+				return last;
+			}
+		}
+		return first;
+	}
+
+	public static String getOrderStatusUrl(String orderStatusUrl, String domain) {
+		if (orderStatusUrl != null && domain != null) {
+			if (!orderStatusUrl.startsWith("https://" + domain)) {
+				String currentDomain = StringUtils.substringBetween(orderStatusUrl, "https://", "/");
+				orderStatusUrl = StringUtils.replaceOnce(orderStatusUrl, currentDomain, domain);
+			}
+		}
+		return orderStatusUrl;
+	}
+
+	public static <T> void setTo(Collection<T> collection, Collection<T> source) {
+		collection.clear();
+		if (source != null) {
+			collection.addAll(source);
+		}
+	}
+
+	public static <T> void setTo(Collection<T> collection, T... source) {
+		collection.clear();
+		if (source != null) {
+			Collections.addAll(collection, source);
+		}
+	}
+
+	public static String printStackTrace(Throwable ex) {
+		StringWriter w = new StringWriter();
+		PrintWriter pw = new PrintWriter(w);
+		try {
+			ex.printStackTrace(pw);
+			w.flush();
+			w.close();
+		} catch (Exception e) {
+			//ignore
+		}
+
+		return w.toString();
+	}
+
+	public static int sum(int[] values) {
+		int total = 0;
+		for (int i = 0; i < values.length; i++) {
+			total += values[i];
+		}
+		return total;
+	}
+
+	public static String returnErrorJson(String error) {
+		return "{\"error\":\"" + removeUnsafeJsonCharacters(error) + "\"}";
+	}
+
+	public static String removeUnsafeJsonCharacters(String s) {
+		s = s.replace('"', '\'');
+		s = StringUtils.replace(s, "\n", "<br>");
+
+		return removeAny(s, "\b\f\n\r\t\\");
+	}
+
+	public static String returnInvalidRequestJson() {
+		return returnErrorJson(returnInvalidRequestPlain());
+	}
+
+	public static String removeAny(String s, String charsToRemove) {
+		char[] toRemove = charsToRemove.toCharArray();
+		Arrays.sort(toRemove);
+		StringBuilder out = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char ch = s.charAt(i);
+
+			if (Arrays.binarySearch(toRemove, ch) < 0) {
+				out.append(ch);
+			}
+		}
+
+		return out.toString();
+	}
+
+	public static Map<String, String[]> getUrlParameters(String url) {
+		HashMap<String, String[]> urlMap = new HashMap<String, String[]>();
+		int start = url.indexOf('?') + 1;
+		if (start == 0) {
+			return urlMap;
+		}
+
+		CharAppender tmp = new ExpandingCharAppender(128, "", 0);
+		String[] values = EMPTY_STRING_ARRAY;
+		String param = null;
+		boolean inArray = false;
+		boolean inValue = false;
+		int arrayIndex = 0;
+
+		for (int i = start; i < url.length(); i++) {
+			char ch = url.charAt(i);
+
+			if (ch == '=') {
+				param = tmp.getAndReset();
+				inValue = true;
+			} else if (ch == '&') {
+				inValue = false;
+				storeParam(param, values, urlMap, tmp, arrayIndex);
+
+				inArray = false;
+				arrayIndex = 0;
+
+				param = null;
+				values = EMPTY_STRING_ARRAY;
+			} else if (ch == '[') {
+				if (inValue) {
+					inArray = true;
+					int valueCount = countMatches(url, ',', i + 1, ']') + 1; //number of commas + 1
+					values = new String[valueCount];
+				} else {
+					for (++i; i < url.length(); ) {
+						ch = url.charAt(i);
+						if (ch == ']') {
+							break;
+						}
+						i++;
+					}
+				}
+			} else if (ch == ',' && inArray) {
+				values[arrayIndex++] = tmp.getAndReset();
+			} else if (ch != ']') {
+				tmp.append(ch);
+			} else if (inArray) {
+				inArray = false;
+			}
+		}
+		if (tmp.length() > 0) {
+			if (param == null) {
+				param = tmp.getAndReset();
+			}
+			storeParam(param, values, urlMap, tmp, arrayIndex);
+		}
+
+		return urlMap;
+	}
+
+	private static int storeParam(String param, String[] values, Map<String, String[]> urlMap, CharAppender tmp, int arrayIndex) {
+		if (values.length == 0) {
+			if (tmp.length() != 0) {
+				values = new String[]{tmp.getAndReset()};
+			}
+		} else {
+			values[arrayIndex++] = tmp.getAndReset();
+		}
+
+		if (urlMap.containsKey(param)) {
+			String[] previous = urlMap.get(param);
+			if (previous == null || previous.length == 0) {
+				urlMap.put(param, values);
+			} else if (values != null && values.length > 0) {
+				int previousLength = previous.length;
+				previous = Arrays.copyOf(previous, previousLength + values.length);
+				System.arraycopy(values, 0, previous, previousLength, values.length);
+				urlMap.put(param, previous);
+			} //else keep previous
+		} else {
+			urlMap.put(param, values);
+		}
+		return arrayIndex;
+	}
+
+	public static int countMatches(final CharSequence str, final char ch, int from, char to) {
+		if (isEmpty(str)) {
+			return 0;
+		}
+		int count = 0;
+		char c;
+		// We could also call str.toCharArray() for faster look ups but that would generate more garbage.
+		for (int i = from; i < str.length(); i++) {
+			c = str.charAt(i);
+			if (ch == c) {
+				count++;
+			}
+			if (c == to) {
+				break;
+			}
+		}
+		return count;
+	}
+
+	public static String getEscapedUrl(String url) {
+		url = StringUtils.replace(url, "/", "\\/");
+		return url;
+	}
+
+	public static void setBigDecimalIfNotNull(HttpServletRequest request, String header, Consumer<BigDecimal> callback) {
+		String str = request.getParameter(header);
+		if (str != null) {
+			BigDecimal value = NumberUtils.createBigDecimal(str);
+			callback.accept(value);
+		}
+	}
+
+	public static void setBigDecimal(HttpServletRequest request, String header, Consumer<BigDecimal> callback) {
+		BigDecimal value = NumberUtils.createBigDecimal(request.getParameter(header));
+		callback.accept(value);
+	}
+
+	public static Integer toInteger(String value, Integer fallback) {
+		try {
+			return Integer.valueOf(value);
+		} catch (Exception e) {
+			return fallback;
+		}
+	}
+
+	public static void setInteger(HttpServletRequest request, String header, Consumer<Integer> callback) {
+		Integer value = toInteger(request.getParameter(header), null);
+		callback.accept(value);
+	}
+
+	public static void setString(HttpServletRequest request, String header, Consumer<String> callback) {
+		String value = request.getParameter(header);
+		if (value != null) {
+			value = value.trim();
+		}
+		callback.accept(value);
+	}
+
+	public static void setBooleanIfNotNull(HttpServletRequest request, String header, Consumer<Boolean> callback) {
+		String value = request.getParameter(header);
+		if (value != null) {
+			if ("on".equals(value)) {
+				callback.accept(true);
+			} else {
+				callback.accept(Boolean.valueOf(value));
+			}
+		}
+	}
+
+	public static void setBoolean(HttpServletRequest request, String header, Consumer<Boolean> callback) {
+		String value = request.getParameter(header);
+		if ("on".equals(value)) {
+			callback.accept(true);
+		} else {
+			callback.accept(Boolean.valueOf(value));
+		}
 	}
 }
 

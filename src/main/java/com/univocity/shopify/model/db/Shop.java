@@ -8,7 +8,9 @@ import org.slf4j.*;
 
 import java.sql.*;
 import java.util.*;
+import java.util.concurrent.*;
 
+import static com.univocity.shopify.utils.Utils.*;
 import static com.univocity.shopify.utils.database.Converter.*;
 
 public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparable<Shop> {
@@ -44,7 +46,7 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	private Long shopifyId;
 
 	private Boolean active;
-	private Long chargeId;
+	private String webhooks;
 
 	private EmailQueue emailQueue;
 
@@ -79,6 +81,7 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 
 		map.put("use_own_email_server", getUseOwnMailServer());
 		map.put("active", isActive());
+		map.put("webhooks", webhooks);
 	}
 
 	@Override
@@ -110,6 +113,30 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 			setShopToken(null);
 		}
 		setActive(readBoolean(rs, "active"));
+		setWebhooks(rs.getString("webhooks"));
+	}
+
+	private final Set<String> webhookSet = ConcurrentHashMap.newKeySet();
+
+	public synchronized Set<String> getWebhookSet() {
+		if (webhookSet.isEmpty() && StringUtils.isNotBlank(webhooks)) {
+			Collections.addAll(webhookSet, StringUtils.split(webhooks, ","));
+		}
+		return webhookSet;
+	}
+
+	public void addWebhooks(Set<String> webhookSet){
+		getWebhookSet().addAll(webhookSet);
+		this.webhooks = StringUtils.join(webhookSet.toArray(), ",");
+	}
+
+	public String getWebhooks() {
+		return webhooks;
+	}
+
+	public void setWebhooks(String webhooks) {
+		this.webhooks = webhooks;
+		this.webhookSet.clear();
 	}
 
 	public String getShopName() {
@@ -201,6 +228,9 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public char[] getSmtpPassword() {
+		if (encodedSmtpPassword == null) {
+			return EMPTY_CHAR_ARRAY;
+		}
 		return encodedSmtpPassword.toCharArray();
 	}
 
@@ -387,7 +417,7 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public String getOwnerNameForEmailing() {
-		return App.getName(getShopOwnerName(), null, getShopName() + " administrator");
+		return Utils.getName(getShopOwnerName(), null, getShopName() + " administrator");
 	}
 
 	public void setUseOwnMailServer(Boolean useOwnServer) {
@@ -396,11 +426,11 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 	}
 
 	public boolean getUseOwnMailServer() {
-		return useOwnEmailServer == null ? false : useOwnEmailServer;
+		return useOwnEmailServer != null && useOwnEmailServer;
 	}
 
 	public boolean isActive() {
-		return active == null || chargeId == null ? false : active;
+		return active == null || active;
 	}
 
 	public boolean isInactive() {
@@ -409,6 +439,9 @@ public class Shop extends BaseEntity<Shop> implements MailSenderConfig, Comparab
 
 	public void setActive(Boolean active) {
 		this.active = Boolean.valueOf(active);
+		if(!this.active){
+			setWebhooks(null);
+		}
 	}
 
 	public static String getAdminUrl(String shopName) {

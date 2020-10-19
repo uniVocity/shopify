@@ -15,15 +15,18 @@ public class SystemMailSender extends AbstractMailSender {
 	private SystemMailSenderConfig config;
 
 	@Autowired
-	private App utils;
+	private App app;
 
 	@Override
 	public MailSenderConfig getConfig() {
 		return config;
 	}
 
+	@Autowired
+	EmailQueue emailQueue;
+
 	public boolean sendEmail(String[] to, String title, String content) {
-		if (utils.isLive()) {
+		if (app.isLive()) {
 			return sendEmail(0L, to, title, content);
 		} else {
 			StringBuilder tmp = new StringBuilder();
@@ -51,5 +54,15 @@ public class SystemMailSender extends AbstractMailSender {
 
 		content = content + "\r\n\r\nServer error:\r\n" + exception.getMessage();
 		return sendEmail(Utils.join(getAdminMailList(), owners), App.getServerName() + " - " + title, content);
+	}
+
+	public boolean sendEmailViaSmtp(Email email) {
+		try {
+			emailQueue.sendEmail(email);
+			return true;
+		} catch (Exception e) {
+			log.error("Error sending e-mail. Shop: " + email.getShopId(), e);
+		}
+		return false;
 	}
 }

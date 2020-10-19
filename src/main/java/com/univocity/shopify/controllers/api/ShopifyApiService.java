@@ -5,6 +5,7 @@ import com.univocity.shopify.*;
 import com.univocity.shopify.dao.*;
 import com.univocity.shopify.email.*;
 import com.univocity.shopify.exception.*;
+import com.univocity.shopify.model.db.*;
 import com.univocity.shopify.model.shopify.*;
 import com.univocity.shopify.utils.*;
 import org.apache.commons.collections4.*;
@@ -15,6 +16,7 @@ import org.springframework.context.annotation.*;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.*;
+import java.util.*;
 
 import static com.univocity.shopify.utils.Utils.*;
 
@@ -25,16 +27,10 @@ import static com.univocity.shopify.utils.Utils.*;
 @Import(ApplicationConfiguration.class)
 public class ShopifyApiService {
 
-	public static final String A_Z = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-	public static final String a_z = "abcdefghijklmnopqrstuvwxyz";
-	public static final String O_9 = "0123456789";
-
-	private static final String PASSWORD_CHARS = A_Z + a_z + O_9;
-
 	private static final Logger log = LoggerFactory.getLogger(ShopifyApiService.class);
 
 	@Autowired
-	private App utils;
+	private App app;
 
 	@Autowired
 	ShopDao shops;
@@ -47,36 +43,59 @@ public class ShopifyApiService {
 
 	@RequestMapping("/webhooks/register")
 	public void registerWebHooks(@RequestParam("shop") String shopName/*, @RequestParam("topic") String topic, HttpServletRequest request*/) {
-		registerWebHook(shopName, "orders/fulfilled", "/purchased");
-		registerWebHook(shopName, "app/uninstalled", "/uninstalled");
-		registerWebHook(shopName, "products/update", "/product/update");
+		Shop shop = shops.getShop(shopName);
+		updateShopWebooks(shop);
 	}
 
-	private void registerWebHook(String shopName, String topic, String localEndpoint) {
+
+	public void updateShopWebooks(Shop shop) {
+		if(app.isTestingLocally()){
+			return;
+		}
+		Set<String> webhooks = new TreeSet<>();
+		registerWebHook(webhooks, shop, "orders/create", "/order/created");
+		registerWebHook(webhooks, shop, "orders/fulfilled", "/order/fulfilled");
+		registerWebHook(webhooks, shop, "app/uninstalled", "/uninstalled");
+		registerWebHook(webhooks, shop, "products/update", "/product/update");
+		if(!webhooks.isEmpty()) {
+			shop.addWebhooks(webhooks);
+			shops.updateShop(shop, new String[]{"webhooks"}, new Object[]{shop.getWebhooks()});
+		}
+	}
+
+	private void registerWebHook(Set<String> webhooks, Shop shop, String topic, String localEndpoint) {
+		if (shop.getWebhookSet().contains(topic)) {
+			return;
+		}
+
 		WebHookRegistration registration = new WebHookRegistration();
 		registration.address = config.getProperty("public.address") + localEndpoint;
 		registration.topic = topic;
 		registration.format = "json";
 
+		String shopName = shop.getShopName();
+
 		try {
-			Webhook response = utils.postFor(Webhook.class, new Webhook(registration), shopName, "/admin/webhooks.json");
+			Webhook response = app.postFor(Webhook.class, new Webhook(registration), shopName, "/admin/webhooks.json");
 			if (response == null) {
-				utils.notifyError("Error registering for webhook on topic '{}' for store '{}'. Registration: {}", topic, shopName, registration);
+				app.notifyError("Error registering for webhook on topic '{}' for store '{}'. Registration: {}", topic, shopName, registration);
 			}
 			if (response.webhook != null && response.webhook.id != null) {
 				log.info("Successfully registered webhook on topic '{}' of store '{}'", topic, shopName);
+				webhooks.add(topic);
 			} else {
-				utils.notifyError("Failed to register webhook on topic '{}' of store '{}'", topic, shopName);
+				app.notifyError("Failed to register webhook on topic '{}' of store '{}'", topic, shopName);
 			}
 		} catch (ShopifyErrorException e) {
 			if (e.getBody() != null && e.getBody().toLowerCase().contains("for this topic has already been taken")) {
 				log.info("Duplicate webhook registration on topic {} of store {}. Registration {}. Ignoring as it is registered.", topic, shopName, registration);
+				webhooks.add(topic);
 				return;
 			} else {
-				utils.notifyError(e, "Error registering for webhook on topic {} for store {}. Registration: {}", topic, shopName, registration);
+				app.notifyError(e, "Error registering for webhook on topic {} for store {}. Registration: {}", topic, shopName, registration);
 			}
 		} catch (Exception e) {
-			utils.notifyError(e, "Error registering for webhook on topic {} for store {}. Registration: {}", topic, shopName, registration);
+			app.notifyError(e, "Error registering for webhook on topic {} for store {}. Registration: {}", topic, shopName, registration);
 		}
 	}
 
@@ -84,7 +103,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/webhooks")
 	public WebhookList getWebhooks(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			WebhookList webhooks = utils.getFor(WebhookList.class, shopName, "/admin/webhooks.json");
+			WebhookList webhooks = app.getFor(WebhookList.class, shopName, "/admin/webhooks.json");
 			return webhooks;
 		});
 	}
@@ -92,19 +111,19 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/webhooks/count")
 	public int getWebhookCount(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			Count count = utils.getFor(Count.class, shopName, "/admin/webhooks/count.json");
+			Count count = app.getFor(Count.class, shopName, "/admin/webhooks/count.json");
 			return count.count;
 		});
 	}
 
 	@RequestMapping("/shopify/webhook/{id}")
 	public Webhook getWebhook(@PathVariable("id") String webhookId, @RequestParam("shop") String shopName, HttpServletRequest request) {
-		return executeLocal(request, () -> utils.getFor(Webhook.class, shopName, "/admin/webhooks/" + webhookId + ".json"));
+		return executeLocal(request, () -> app.getFor(Webhook.class, shopName, "/admin/webhooks/" + webhookId + ".json"));
 	}
 
 	@RequestMapping("/shopify/webhook/{id}/delete")
 	public void deleteWebhook(@PathVariable("id") String webhookId, @RequestParam("shop") String shopName, HttpServletRequest request) {
-		executeLocal(request, () -> utils.delete(shopName, "/admin/webhooks/" + webhookId + ".json"));
+		executeLocal(request, () -> app.delete(shopName, "/admin/webhooks/" + webhookId + ".json"));
 	}
 
 	@RequestMapping("/shopify/webhook/{id}/update")
@@ -114,14 +133,14 @@ public class ShopifyApiService {
 			update.webhook = new WebHookRegistration();
 			update.webhook.id = Long.valueOf(webhookId);
 			update.webhook.address = newServerAddress;
-			return utils.putFor(Webhook.class, update, shopName, "/admin/webhooks/" + webhookId + ".json");
+			return app.putFor(Webhook.class, update, shopName, "/admin/webhooks/" + webhookId + ".json");
 		});
 	}
 
 	@RequestMapping("/shopify/customer/{customer_id}/orders")
 	public OrderList getOrders(@PathVariable("customer_id") String customerId, @RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			OrderList out = utils.getFor(OrderList.class, shopName, "/admin/orders.json?customer_id=" + customerId + "&status=closed");
+			OrderList out = app.getFor(OrderList.class, shopName, "/admin/orders.json?customer_id=" + customerId + "&status=closed");
 			return out;
 		});
 	}
@@ -130,7 +149,7 @@ public class ShopifyApiService {
 	public ShopifyOrder getOrder(@PathVariable("customer_id") String customerId, @PathVariable("order_id") String order_id, @RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
 			final String endpoint = "/admin/orders.json?ids=" + order_id + "&customer_id=" + customerId + "&status=closed";
-			OrderList out = utils.getFor(OrderList.class, shopName, endpoint);
+			OrderList out = app.getFor(OrderList.class, shopName, endpoint);
 			if (CollectionUtils.isNotEmpty(out.orders)) {
 				if (out.orders.size() != 1) {
 					log.warn("Got multiple ({}) orders from shopify service. Shop: {}, Endpoint: {}", out.orders.size(), shopName, endpoint);
@@ -145,7 +164,7 @@ public class ShopifyApiService {
 	public String getOrderJson(@PathVariable("order_id") String order_id, @RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
 			final String endpoint = "/admin/orders.json?ids=" + order_id + "&status=closed";
-			String out = utils.getFor(String.class, shopName, endpoint);
+			String out = app.getFor(String.class, shopName, endpoint);
 			if (StringUtils.isNotBlank(out)) {
 				return out;
 			}
@@ -156,7 +175,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/product/{id}")
 	public ShopifyProduct getProduct(@RequestParam("shop") String shopName, @PathVariable("id") String id, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			ProductWrapper out = utils.getFor(ProductWrapper.class, shopName, "/admin/products/" + id + ".json?fields=id,title,variants,image,images");
+			ProductWrapper out = app.getFor(ProductWrapper.class, shopName, "/admin/products/" + id + ".json?fields=id,title,variants,image,images");
 			return out.product;
 		});
 	}
@@ -164,7 +183,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/variant/{id}")
 	public ProductVariant getVariant(@RequestParam("shop") String shopName, @PathVariable("id") String id, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			ProductVariantWrapper out = utils.getFor(ProductVariantWrapper.class, shopName, "/admin/variants/" + id + ".json");
+			ProductVariantWrapper out = app.getFor(ProductVariantWrapper.class, shopName, "/admin/variants/" + id + ".json");
 			return out.variant;
 		});
 	}
@@ -172,7 +191,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/product/{product_id}/image/{id}")
 	public ShopifyImage getImage(@RequestParam("shop") String shopName, @PathVariable("product_id") String productId, @PathVariable("id") String imageId, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			ImageWrapper out = utils.getFor(ImageWrapper.class, shopName, "/admin/products/" + productId + "/images/" + imageId + ".json");
+			ImageWrapper out = app.getFor(ImageWrapper.class, shopName, "/admin/products/" + productId + "/images/" + imageId + ".json");
 			return out.image;
 		});
 	}
@@ -180,7 +199,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/products")
 	public ProductList getProducts(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			ProductList out = utils.getFor(ProductList.class, shopName, "/admin/products.json?limit=250&fields=id,title,variants,image");
+			ProductList out = app.getFor(ProductList.class, shopName, "/admin/products.json?limit=250&fields=id,title,variants,image");
 			return out;
 		});
 	}
@@ -188,7 +207,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/shop/details")
 	public ShopDetails getShopDetails(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			ShopDetailsWrapper shopDetails = utils.getFor(ShopDetailsWrapper.class, shopName, "/admin/shop.json");
+			ShopDetailsWrapper shopDetails = app.getFor(ShopDetailsWrapper.class, shopName, "/admin/shop.json");
 			if (shopDetails != null) {
 				return shopDetails.shop;
 			}
@@ -200,7 +219,7 @@ public class ShopifyApiService {
 	@RequestMapping("/shopify/products/count")
 	public int getProductCount(@RequestParam("shop") String shopName, HttpServletRequest request) {
 		return executeLocal(request, () -> {
-			Count count = utils.getFor(Count.class, shopName, "/admin/products/count.json");
+			Count count = app.getFor(Count.class, shopName, "/admin/products/count.json");
 			return count.count;
 		});
 	}

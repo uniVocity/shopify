@@ -9,12 +9,15 @@ import com.univocity.shopify.utils.*;
 import org.apache.commons.lang3.*;
 import org.slf4j.*;
 import org.springframework.beans.factory.annotation.*;
+import org.springframework.core.io.*;
 import org.springframework.mail.*;
 import org.springframework.mail.javamail.*;
 import org.springframework.scheduling.annotation.*;
 
 import javax.mail.internet.*;
 import java.util.*;
+
+import static org.springframework.mail.javamail.MimeMessageHelper.*;
 
 public class EmailQueue {
 
@@ -24,7 +27,7 @@ public class EmailQueue {
 	EmailQueueDao emailQueueDao;
 
 	@Autowired
-	App utils;
+	App app;
 
 	@Autowired
 	ShopDao shopDao;
@@ -34,6 +37,9 @@ public class EmailQueue {
 
 	@Autowired
 	SystemMailSenderConfig systemMailSenderConfig;
+
+	@Autowired
+	MarkdownToHtml markdownToHtmlTransformer;
 
 	//invoked every 2 minutes with a fixed delay. Measured from the completion time of each preceding invocation.
 	@Scheduled(fixedDelay = 120000)
@@ -68,7 +74,7 @@ public class EmailQueue {
 		List<Email> emails = emailQueueDao.pollEmailsToSend(amount);
 		for (Email email : emails) {
 			try {
-				if (utils.isTestingLocally()) {
+				if (app.isTestingLocally()) {
 					log.info("Would send e-mail '" + email.getTitle() + "' to: " + email.getToAddressList() + " with text:\n" + email.getBody());
 				} else {
 					sendEmail(email);
@@ -85,7 +91,7 @@ public class EmailQueue {
 		return emailQueueDao.addToQueue(email);
 	}
 
-	private void sendEmail(Email email) throws MailException {
+	public void sendEmail(Email email) throws MailException {
 		boolean usingSystemServer = false;
 		final JavaMailSender mailSender;
 		long shopId = email.getShopId();
@@ -121,16 +127,25 @@ public class EmailQueue {
 
 		MimeMessage message = mailSender.createMimeMessage();
 		try {
-			MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+			MimeMessageHelper helper = new MimeMessageHelper(message, MULTIPART_MODE_RELATED, "UTF-8");
 
 			helper.setFrom(email.getFrom());
 			helper.setTo(email.getTo());
 			if (StringUtils.isNotBlank(email.getReplyTo())) { //populated via shop.getReplyToAddress()
 				helper.setReplyTo(email.getReplyTo());
 			}
-
 			helper.setSubject(email.getTitle());
-			helper.setText(email.getBody());
+			String body = email.getBody();
+
+			body = markdownToHtmlTransformer.plaintextToHtml(body);
+
+			helper.setText(body, true);
+
+			if (body.contains("<img src='cid:")) {
+				String address = StringUtils.substringBetween(body, "<img src='cid:", "'>");
+				InputStreamSource imageInput = QrCode.generateQRCodeAttachment(address);
+				helper.addInline(address, imageInput, "image/png");
+			}
 		} catch (javax.mail.MessagingException e) {
 			log.warn("Unable to write e-mail", e);
 		}
@@ -167,7 +182,7 @@ public class EmailQueue {
 					msg.append("\r\n\r\nYour e-mail server got disabled temporarily and our own server will be used to send e-mails until you re-enable it in the settings page: https://");
 					msg.append(shop.getShopName());
 					msg.append("/");
-					msg.append(utils.getShopifyProxy());
+					msg.append(app.getShopifyProxy());
 					msg.append("/settings");
 					msg.append("\r\nIn the meantime your clients will receive emails from licenses@univocity.com");
 

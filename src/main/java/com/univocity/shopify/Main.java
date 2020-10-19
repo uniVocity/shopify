@@ -33,6 +33,12 @@ public class Main implements WebMvcConfigurer {
 		return staticContext;
 	}
 
+	@Override
+	public void addResourceHandlers(ResourceHandlerRegistry registry) {
+		registry.addResourceHandler("/layout/**").addResourceLocations("classpath:/template/layout/")
+				.setCachePeriod(0);
+	}
+
 	@PostConstruct
 	public void init() {
 		staticContext = context;

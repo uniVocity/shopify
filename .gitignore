@@ -44,3 +44,6 @@ local.properties
 
 **/tmp/*
 /shopify-core/
+
+# VS code ignores
+.vscode
