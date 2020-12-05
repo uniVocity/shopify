@@ -8,6 +8,7 @@ import java.net.http.HttpResponse;
 
 public class CoinGeckoPriceConverter implements PriceConverter {
 
+    private final String baseCoinGeckoUrl = "https://api.coingecko.com/api/v3/";
     @Override
     public double getLatestPrice(String tokenSymbol, String currencySymbol) {
         if ((tokenSymbol.equals("ADA")) && (currencySymbol.equals("USDT"))) {
@@ -18,11 +19,12 @@ public class CoinGeckoPriceConverter implements PriceConverter {
 
     private double executeGetCardanoPrice() {
         try {
+            String coinGeckoPriceQueryEndPoint = "simple/price?ids=cardano&vs_currencies=usd";
             HttpClient client = HttpClient.newHttpClient();
 
             // create a request
             HttpRequest request = HttpRequest.newBuilder(
-                    URI.create("https://api.coingecko.com/api/v3/simple/price?ids=cardano&vs_currencies=usd"))
+                    URI.create(baseCoinGeckoUrl + coinGeckoPriceQueryEndPoint))
                     .header("accept", "application/json")
                     .build();
 
