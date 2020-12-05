@@ -1,19 +1,12 @@
 package com.univocity.shopify.price;
 
-import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
-import java.nio.charset.StandardCharsets;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 
 public class CoinGeckoPriceConverter implements PriceConverter {
-    private final String coinGeckcoBaseUrl = "https://api.coingecko.com/api/v3/";
-    private final String[] urlParameters = {"cardano", "usd"};
-    HttpURLConnection connection = null;
 
     @Override
     public double getLatestPrice(String tokenSymbol, String currencySymbol) {
@@ -35,9 +28,13 @@ public class CoinGeckoPriceConverter implements PriceConverter {
 
             // use the client to send the request
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
+            //Get the body of the Json response - In this case the price of cardano
             String jsonCardanoResponse = response.body();
-            String delimitedJsonCardanoResponse = jsonCardanoResponse.replaceAll("[^0-9]","");
-            delimitedJsonCardanoResponse.trim();
+
+            //FIXME The next three lines of code will have to be refactored. If the price of Cardano goes above 1 dollar,
+            // This method of delimiting the json body will mess it up. Will need to implement a Json Object/Model
+            // To map the json response of the Cardano price to the Model/Json Object Price.
+            String delimitedJsonCardanoResponse = jsonCardanoResponse.replaceAll("[^0-9]", "");
             String formatJsonCardanoResponse = "0." + delimitedJsonCardanoResponse;
 
             return Double.parseDouble(formatJsonCardanoResponse);
@@ -45,10 +42,7 @@ public class CoinGeckoPriceConverter implements PriceConverter {
         } catch (Exception e) {
             e.printStackTrace();
             return -1;
-        } finally {
-            if (connection != null) {
-                connection.disconnect();
-            }
         }
     }
 }
+
