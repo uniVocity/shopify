@@ -2,14 +2,18 @@ package com.univocity.shopify.price;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.univocity.shopify.model.Instrument;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 
-public class HitBtcPriceConverter implements PriceConverter{
+public class HitBtcPriceConverter implements PriceConverter {
 
+    private static final Logger log = LoggerFactory.getLogger(BinancePriceConverter.class);
+    private static final HttpClient client = HttpClient.newHttpClient();
     private final String baseHitBtcUrl = "https://api.hitbtc.com/api/2/public/";
 
     @Override
@@ -19,10 +23,10 @@ public class HitBtcPriceConverter implements PriceConverter{
 
     private double executeGetCardanoPrice() {
         try {
+            // This is the price endpoint to get the price of Cardano with arguments included
             String hitBtcPriceQueryEndPoint = "ticker/ADAUSD";
-            HttpClient client = HttpClient.newHttpClient();
 
-            // create a request
+            // create a request to HitBTC for a response of bid, ask, last, etc For Cardano
             HttpRequest request = HttpRequest.newBuilder(
                     URI.create(baseHitBtcUrl + hitBtcPriceQueryEndPoint))
                     .header("accept", "application/json")
@@ -40,7 +44,7 @@ public class HitBtcPriceConverter implements PriceConverter{
             return Double.parseDouble(cardanoInstrument.last);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Unable to obtain price of Cardano from Hit BTC", e);
             return -1;
         }
     }

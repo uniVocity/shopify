@@ -1,5 +1,8 @@
 package com.univocity.shopify.price;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -8,7 +11,11 @@ import java.net.http.HttpResponse;
 
 public class CoinGeckoPriceConverter implements PriceConverter {
 
+
+    private static final Logger log = LoggerFactory.getLogger(BinancePriceConverter.class);
+    private static final HttpClient client = HttpClient.newHttpClient();
     private final String baseCoinGeckoUrl = "https://api.coingecko.com/api/v3/";
+
     @Override
     public double getLatestPrice(String tokenSymbol, String currencySymbol) {
         if ((tokenSymbol.equals("ADA")) && (currencySymbol.equals("USDT"))) {
@@ -19,10 +26,10 @@ public class CoinGeckoPriceConverter implements PriceConverter {
 
     private double executeGetCardanoPrice() {
         try {
+            // This is the price endpoint to get the price of Cardano with arguments included
             String coinGeckoPriceQueryEndPoint = "simple/price?ids=cardano&vs_currencies=usd";
-            HttpClient client = HttpClient.newHttpClient();
 
-            // create a request
+            // create a request to Coin Gecko for a purse price response.
             HttpRequest request = HttpRequest.newBuilder(
                     URI.create(baseCoinGeckoUrl + coinGeckoPriceQueryEndPoint))
                     .header("accept", "application/json")
@@ -30,7 +37,7 @@ public class CoinGeckoPriceConverter implements PriceConverter {
 
             // use the client to send the request
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
-            //Get the body of the Json response - In this case the price of cardano
+            //Get the body of the Json response - In this case bid, ask, volume, timestamp, last, etc.
             String jsonCardanoResponse = response.body();
 
             //FIXME The next three lines of code will have to be refactored. If the price of Cardano goes above 1 dollar,
@@ -43,7 +50,7 @@ public class CoinGeckoPriceConverter implements PriceConverter {
             return Double.parseDouble(formatJsonCardanoResponse);
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.warn("Unable to obtain price of Cardano from Coin Gecko", e);
             return -1;
         }
     }
