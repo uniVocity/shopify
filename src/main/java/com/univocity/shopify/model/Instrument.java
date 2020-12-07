@@ -6,7 +6,7 @@ import java.util.Date;
 
 public class Instrument {
 
-    @JsonAlias({"Crypto_Name"})
+    @JsonAlias({"Crypto_Name", "Coin_Name"})
     public String CryptoCurrencyName;
 
     @JsonAlias({"symbol", "ticker"})
