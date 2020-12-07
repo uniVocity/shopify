@@ -33,10 +33,5 @@ class BinancePriceConverter implements PriceConverter {
 		}
 		return client;
 	}
-
-
-	// just a quick and dirty check to see if it works
-	public static void main(String... args) {
-		System.out.println(new BinancePriceConverter().getLatestPrice("ADA", "USDT"));
-	}
+	
 }
