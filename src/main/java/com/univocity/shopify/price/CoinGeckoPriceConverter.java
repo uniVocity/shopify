@@ -36,6 +36,7 @@ public class CoinGeckoPriceConverter implements PriceConverter {
             //FIXME The next three lines of code will have to be refactored. If the price of Cardano goes above 1 dollar,
             // This method of delimiting the json body will mess it up. Will need to implement a Json Object/Model
             // To map the json response of the Cardano price to the Model/Json Object Price.
+            // I tried to use Jackson Object Mapper but it was not having it, so this is a to be continued.
             String delimitedJsonCardanoResponse = jsonCardanoResponse.replaceAll("[^0-9]", "");
             String formatJsonCardanoResponse = "0." + delimitedJsonCardanoResponse;
 
