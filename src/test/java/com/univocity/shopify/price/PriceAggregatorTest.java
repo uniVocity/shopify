@@ -4,7 +4,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
-
+//TODO Pull this out of unit testing into its own integration testing suite
 class PriceAggregatorTest {
     //TODO make a more robust testing suite for the Cardano price APIs
 
