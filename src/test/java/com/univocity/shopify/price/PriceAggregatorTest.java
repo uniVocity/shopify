@@ -14,9 +14,12 @@ class PriceAggregatorTest {
         //initialize all exchange/ price sources here
         final BinancePriceConverter binancePriceConverter = new BinancePriceConverter();
         final CoinGeckoPriceConverter coinGeckoPriceConverter = new CoinGeckoPriceConverter();
+        final HitBtcPriceConverter hitBtcPriceConverter = new HitBtcPriceConverter();
 
         //Test all data sources here
         assertTrue(binancePriceConverter.getLatestPrice("ADA", "USDT") > 0);
         assertTrue(coinGeckoPriceConverter.getLatestPrice("ADA", "USDT") > 0);
+        assertTrue(hitBtcPriceConverter.getLatestPrice("ADA", "USDT") > 0);
+
     }
 }
